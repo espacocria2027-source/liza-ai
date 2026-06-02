@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>L.I.Z.A</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .msg {
+      margin: 10px 0;
+    }
+
+    .user {
+      color: #4fc3f7;
+    }
+
+    .bot {
+      color: #81c784;
+    }
+
+    #inputArea {
+      display: flex;
+      padding: 10px;
+      background: #222;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="chat"></div>
+
+<div id="inputArea">
+  <input id="msg" placeholder="Digite sua mensagem...">
+  <button onclick="enviar()">Enviar</button>
+  <button onclick="falar()">🎤</button>
+</div>
+
+<script>
+
+const API_URL = "http://10.5.48.221:10000/chat";
+
+async function enviar() {
+
+  let msg = document.getElementById("msg").value;
+
+  if (!msg) return;
+
+  addMsg("Você", msg, "user");
+
+  document.getElementById("msg").value = "";
+
+  try {
+
+    let res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: msg })
+    });
+
+    let data = await res.json();
+
+    addMsg("L.I.Z.A", data.response, "bot");
+
+    falarTexto(data.response);
+
+  } catch (erro) {
+
+    addMsg("ERRO", erro, "bot");
+
+  }
+}
+
+function addMsg(nome, texto, classe) {
+  let div = document.createElement("div");
+  div.className = "msg " + classe;
+  div.innerHTML = `<b>${nome}:</b> ${texto}`;
+  document.getElementById("chat").appendChild(div);
+}
+
+function falarTexto(texto) {
+  let speech = new SpeechSynthesisUtterance(texto);
+  speech.lang = "pt-BR";
+  speechSynthesis.speak(speech);
+}
+
+function falar() {
+
+  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "pt-BR";
+
+  recognition.onresult = function(event) {
+    document.getElementById("msg").value = event.results[0][0].transcript;
+    enviar();
+  };
+
+  recognition.start();
+}
+
+</script>
+
+</body>
+</html>
