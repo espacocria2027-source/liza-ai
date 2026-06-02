@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from groq import Groq
 import os
@@ -41,6 +41,11 @@ Você é amigável, inteligente e prestativa.
     return resposta.choices[0].message.content
 
 
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
 
@@ -58,11 +63,6 @@ def chat():
     return jsonify({
         "response": resposta
     })
-
-
-@app.route("/")
-def home():
-    return "L.I.Z.A ONLINE"
 
 
 if __name__ == "__main__":
