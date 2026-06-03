@@ -1,29 +1,65 @@
-# =========================
-# MEMÓRIA DA L.I.Z.A
-# =========================
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+from groq import Groq
+import os
 
-ARQUIVO_MEMORIA = "memoria.txt"
+app = Flask(__name__)
+CORS(app)
 
-def salvar_memoria(texto):
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-    with open(ARQUIVO_MEMORIA, "a", encoding="utf-8") as arquivo:
+# 🔥 memória simples em runtime
+historico = []
 
-        arquivo.write(texto + "\n")
+def perguntar_ia(mensagem):
 
-def ler_memoria():
+    global historico
 
-    try:
+    # adiciona mensagem do usuário
+    historico.append({"role": "user", "content": mensagem})
 
-        with open(ARQUIVO_MEMORIA, "r", encoding="utf-8") as arquivo:
+    # limita memória (evita estourar contexto)
+    contexto = historico[-10:]
 
-            return arquivo.read()
+    resposta = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Você é L.I.Z.A, uma IA feminina, amigável e inteligente. "
+                    "Fale sempre em português do Brasil."
+                )
+            }
+        ] + contexto
+    )
 
-    except FileNotFoundError:
+    texto = resposta.choices[0].message.content
 
-        return ""
+    # salva resposta da IA
+    historico.append({"role": "assistant", "content": texto})
 
-def limpar_memoria():
+    return texto
 
-    with open(ARQUIVO_MEMORIA, "w", encoding="utf-8") as arquivo:
 
-        arquivo.write("")
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
+
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    dados = request.json
+
+    if not dados or "message" not in dados:
+        return jsonify({"response": "Mensagem vazia"}), 400
+
+    mensagem = dados["message"]
+
+    resposta = perguntar_ia(mensagem)
+
+    return jsonify({"response": resposta})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
