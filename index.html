@@ -66,20 +66,18 @@
 
 <script>
 
-const API_URL = "http://10.5.48.221:10000/chat";
+// 🔥 URL CORRETA (Render)
+const API_URL = "https://liza-ai.onrender.com/chat";
 
 async function enviar() {
 
   let msg = document.getElementById("msg").value;
-
   if (!msg) return;
 
   addMsg("Você", msg, "user");
-
   document.getElementById("msg").value = "";
 
   try {
-
     let res = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -95,9 +93,7 @@ async function enviar() {
     falarTexto(data.response);
 
   } catch (erro) {
-
-    addMsg("ERRO", erro, "bot");
-
+    addMsg("ERRO", erro.message || String(erro), "bot");
   }
 }
 
