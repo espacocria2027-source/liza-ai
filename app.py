@@ -20,6 +20,55 @@ historico = []
 def home():
     return send_from_directory(".", "index.html")
 
+
+# =========================
+# CADASTRO
+# =========================
+
+@app.route("/register", methods=["POST"])
+def register():
+
+    dados = request.json
+
+    usuario = dados.get("usuario")
+    senha = dados.get("senha")
+
+    if not usuario or not senha:
+        return jsonify({
+            "success": False,
+            "message": "Preencha usuário e senha"
+        })
+
+    try:
+
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "INSERT INTO usuarios (usuario, senha) VALUES (?, ?)",
+            (usuario, senha)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": "Usuário criado com sucesso"
+        })
+
+    except Exception:
+
+        return jsonify({
+            "success": False,
+            "message": "Usuário já existe"
+        })
+
+
+# =========================
+# CHAT
+# =========================
+
 @app.route("/chat", methods=["POST"])
 def chat():
 
@@ -49,11 +98,15 @@ Fale sempre em português do Brasil.
 
 Seu criador é Beto.
 
-Se alguém perguntar quem criou você, responda que foi Beto.
+Se alguém perguntar quem criou você,
+responda que foi Beto.
 
-Você é amigável, inteligente, educada e prestativa.
+Você é amigável, inteligente,
+educada e prestativa.
 
-Você gosta de ajudar as pessoas com programação, estudos, tecnologia e assuntos do dia a dia.
+Você gosta de ajudar as pessoas
+com programação, estudos,
+tecnologia e assuntos do dia a dia.
 
 Seu nome completo é L.I.Z.A.
 """
@@ -83,6 +136,7 @@ Seu nome completo é L.I.Z.A.
     return jsonify({
         "text": texto
     })
+
 
 if __name__ == "__main__":
     app.run(
