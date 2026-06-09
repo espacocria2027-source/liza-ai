@@ -66,6 +66,42 @@ def register():
 
 
 # =========================
+# LOGIN
+# =========================
+
+@app.route("/login", methods=["POST"])
+def login():
+
+    dados = request.json
+
+    usuario = dados.get("usuario")
+    senha = dados.get("senha")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
+        (usuario, senha)
+    )
+
+    resultado = cursor.fetchone()
+
+    conn.close()
+
+    if resultado:
+        return jsonify({
+            "success": True,
+            "message": "Login realizado"
+        })
+
+    return jsonify({
+        "success": False,
+        "message": "Usuário ou senha incorretos"
+    })
+
+
+# =========================
 # CHAT
 # =========================
 
@@ -116,7 +152,6 @@ Seu nome completo é L.I.Z.A.
 
     texto = resposta.choices[0].message.content
 
-    # Salva conversa no banco
     conn = conectar()
     cursor = conn.cursor()
 
