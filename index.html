@@ -1,60 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>L.I.Z.A</title>
+<meta charset="UTF-8">
+<title>L.I.Z.A</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #111;
-      color: white;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0f0f0f;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
 
-    #chat {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-    }
+header {
+  padding: 15px;
+  background: #1a1a1a;
+  text-align: center;
+  font-weight: bold;
+}
 
-    .msg {
-      margin: 10px 0;
-    }
+#chat {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
 
-    .user {
-      color: #4fc3f7;
-    }
+.msg {
+  max-width: 80%;
+  padding: 10px;
+  margin: 8px;
+  border-radius: 10px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
 
-    .bot {
-      color: #81c784;
-    }
+.user {
+  background: #1976d2;
+  margin-left: auto;
+}
 
-    #inputArea {
-      display: flex;
-      padding: 10px;
-      background: #222;
-    }
+.bot {
+  background: #2e7d32;
+  margin-right: auto;
+}
 
-    input {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-    }
+#inputArea {
+  display: flex;
+  padding: 10px;
+  background: #1a1a1a;
+}
 
-    button {
-      margin-left: 10px;
-      padding: 10px;
-      cursor: pointer;
-    }
-  </style>
+input {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+}
+
+button {
+  margin-left: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #333;
+  color: white;
+}
+
+button:hover {
+  background: #444;
+}
+
+.typing {
+  font-style: italic;
+  opacity: 0.6;
+}
+</style>
 </head>
 
 <body>
+
+<header>🤖 L.I.Z.A ONLINE</header>
 
 <div id="chat"></div>
 
@@ -66,62 +96,139 @@
 
 <script>
 
-// 🔥 URL CORRETA (Render)
-const API_URL = "https://liza-ai.onrender.com/chat";
+function addMsg(texto, classe) {
+
+  const div = document.createElement("div");
+
+  div.className = "msg " + classe;
+  div.textContent = texto;
+
+  document.getElementById("chat").appendChild(div);
+
+  document.getElementById("chat").scrollTop =
+    document.getElementById("chat").scrollHeight;
+}
+
+function typing() {
+
+  const div = document.createElement("div");
+
+  div.className = "msg bot typing";
+  div.id = "typing";
+
+  div.textContent = "L.I.Z.A está digitando...";
+
+  document.getElementById("chat").appendChild(div);
+}
+
+function removeTyping() {
+
+  const el = document.getElementById("typing");
+
+  if (el) {
+    el.remove();
+  }
+}
 
 async function enviar() {
 
-  let msg = document.getElementById("msg").value;
+  let msg = document.getElementById("msg").value.trim();
+
   if (!msg) return;
 
-  addMsg("Você", msg, "user");
+  addMsg("Você: " + msg, "user");
+
   document.getElementById("msg").value = "";
 
+  typing();
+
   try {
-    let res = await fetch(API_URL, {
+
+    let res = await fetch("/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ message: msg })
+      body: JSON.stringify({
+        message: msg
+      })
     });
 
     let data = await res.json();
 
-    addMsg("L.I.Z.A", data.response, "bot");
+    removeTyping();
 
-    falarTexto(data.response);
+    addMsg("L.I.Z.A: " + data.text, "bot");
 
-  } catch (erro) {
-    addMsg("ERRO", erro.message || String(erro), "bot");
+    falarTexto(data.text);
+
+  } catch (e) {
+
+    removeTyping();
+
+    addMsg("ERRO: " + e.message, "bot");
   }
 }
 
-function addMsg(nome, texto, classe) {
-  let div = document.createElement("div");
-  div.className = "msg " + classe;
-  div.innerHTML = `<b>${nome}:</b> ${texto}`;
-  document.getElementById("chat").appendChild(div);
-}
-
 function falarTexto(texto) {
+
+  speechSynthesis.cancel();
+
   let speech = new SpeechSynthesisUtterance(texto);
+
   speech.lang = "pt-BR";
+  speech.rate = 1;
+  speech.pitch = 1.1;
+  speech.volume = 1;
+
+  let voices = speechSynthesis.getVoices();
+
+  let vozPt = voices.find(v =>
+    v.lang.toLowerCase().includes("pt")
+  );
+
+  if (vozPt) {
+    speech.voice = vozPt;
+  }
+
   speechSynthesis.speak(speech);
 }
 
 function falar() {
 
-  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "pt-BR";
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-  recognition.onresult = function(event) {
-    document.getElementById("msg").value = event.results[0][0].transcript;
+  if (!SpeechRecognition) {
+    alert("Seu navegador não suporta reconhecimento de voz.");
+    return;
+  }
+
+  let rec = new SpeechRecognition();
+
+  rec.lang = "pt-BR";
+
+  rec.onresult = function(event) {
+
+    document.getElementById("msg").value =
+      event.results[0][0].transcript;
+
     enviar();
   };
 
-  recognition.start();
+  rec.start();
 }
+
+window.speechSynthesis.onvoiceschanged = () => {
+  speechSynthesis.getVoices();
+};
+
+document.getElementById("msg").addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    enviar();
+  }
+});
 
 </script>
 
