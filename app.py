@@ -240,27 +240,35 @@ Responda sempre de forma clara,
 
 @app.route("/tts", methods=["POST"])
 def tts():
+    try:
+        dados = request.json or {}
+        texto = dados.get("text", "")
 
-    dados = request.json or {}
-    texto = dados.get("text", "")
+        if not texto:
+            return jsonify({
+                "error": "Texto vazio"
+            }), 400
 
-    if not texto:
+        audio_stream = eleven.text_to_speech.convert(
+            voice_id="EXAVITQu4vr4xnSDxMaL",  # Sarah
+            model_id="eleven_multilingual_v2",
+            text=texto
+        )
+
+        audio_bytes = b"".join(audio_stream)
+
+        return Response(
+            audio_bytes,
+            mimetype="audio/mpeg"
+        )
+
+    except Exception as e:
+        print("ERRO TTS:", e)
         return jsonify({
-            "error": "Texto vazio"
-        }), 400
+            "error": str(e)
+        }), 500
 
-    audio_stream = eleven.text_to_speech.convert(
-        voice_id="EXAVITQu4vr4xnSDxMaL",  # Sarah
-        model_id="eleven_multilingual_v2",
-        text=texto
-    )
 
-    audio_bytes = b"".join(audio_stream)
-
-    return Response(
-        audio_bytes,
-        mimetype="audio/mpeg"
-    )
 # =========================
 # START
 # =========================
