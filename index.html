@@ -284,7 +284,30 @@ usuario:localStorage.getItem("usuario")
 
 let data=await res.json();
 
-addMsg(data.text,"bot");
+addMsg(data.text, "bot");
+
+// Solicita o áudio ao backend
+const audioResponse = await fetch("/tts", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        text: data.text
+    })
+});
+
+if (audioResponse.ok) {
+    const audioBlob = await audioResponse.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    const audio = new Audio(audioUrl);
+    audio.play();
+
+    audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+    };
+}
 
 }catch(e){
 addMsg("Erro: "+e.message,"bot");
