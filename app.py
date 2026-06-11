@@ -249,18 +249,18 @@ def tts():
             "error": "Texto vazio"
         }), 400
 
-    audio = eleven.text_to_speech.convert(
-        text=texto,
-        voice_id="EXAVITQu4vr4xnSDxMaL",
-        model_id="eleven_multilingual_v2"
+    audio_stream = eleven.text_to_speech.convert(
+        voice_id="EXAVITQu4vr4xnSDxMaL",  # Sarah
+        model_id="eleven_multilingual_v2",
+        text=texto
     )
+
+    audio_bytes = b"".join(audio_stream)
 
     return Response(
-        audio,
+        audio_bytes,
         mimetype="audio/mpeg"
     )
-
-
 # =========================
 # START
 # =========================
