@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>L.I.Z.A</title>
+<title>L.I.Z.A ELITE</title>
 
 <style>
 body {
@@ -10,30 +10,71 @@ body {
   font-family: Arial;
   background: #0f0f0f;
   color: white;
-  display: flex;
-  flex-direction: column;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* LOGIN */
+#loginBox {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 10px;
+  width: 320px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #333;
+  color: white;
+}
+
+button:hover {
+  background: #444;
+}
+
+/* CHAT */
+#chatBox {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  flex-direction: column;
 }
 
 header {
   padding: 15px;
   background: #1a1a1a;
-  text-align: center;
-  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #chat {
   flex: 1;
-  padding: 10px;
   overflow-y: auto;
+  padding: 10px;
 }
 
 .msg {
-  max-width: 80%;
   padding: 10px;
-  margin: 8px;
+  margin: 5px;
   border-radius: 10px;
-  line-height: 1.4;
+  max-width: 80%;
   white-space: pre-wrap;
 }
 
@@ -44,7 +85,6 @@ header {
 
 .bot {
   background: #2e7d32;
-  margin-right: auto;
 }
 
 #inputArea {
@@ -53,182 +93,172 @@ header {
   background: #1a1a1a;
 }
 
-input {
+#msg {
   flex: 1;
-  padding: 12px;
+  padding: 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   outline: none;
 }
 
-button {
+.sendBtn {
   margin-left: 8px;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #333;
-  color: white;
+  width: 100px;
 }
 
-button:hover {
-  background: #444;
-}
-
-.typing {
-  font-style: italic;
-  opacity: 0.6;
+#status {
+  font-size: 12px;
+  opacity: 0.7;
 }
 </style>
 </head>
 
 <body>
 
-<header>🤖 L.I.Z.A ONLINE</header>
+<!-- LOGIN -->
+<div id="loginBox">
+  <h3>🔐 L.I.Z.A LOGIN</h3>
 
-<div id="chat"></div>
+  <input id="usuario" placeholder="Usuário">
+  <input id="senha" type="password" placeholder="Senha">
 
-<div id="inputArea">
-  <input id="msg" placeholder="Digite sua mensagem...">
-  <button onclick="enviar()">Enviar</button>
-  <button onclick="falar()">🎤</button>
+  <button onclick="login()">Entrar</button>
+  <button onclick="register()">Cadastrar</button>
+
+  <p id="status"></p>
+</div>
+
+<!-- CHAT -->
+<div id="chatBox">
+
+  <header>
+    🤖 L.I.Z.A ELITE
+    <button onclick="logout()" style="width:auto;padding:8px;">Sair</button>
+  </header>
+
+  <div id="chat"></div>
+
+  <div id="inputArea">
+    <input id="msg" placeholder="Digite sua mensagem...">
+    <button class="sendBtn" onclick="enviar()">Enviar</button>
+  </div>
+
 </div>
 
 <script>
 
-function addMsg(texto, classe) {
+let logado = localStorage.getItem("logado") === "true";
 
-  const div = document.createElement("div");
+/* INIT */
+window.onload = () => {
+  if (logado) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("chatBox").style.display = "flex";
+  }
+};
 
-  div.className = "msg " + classe;
-  div.textContent = texto;
-
-  document.getElementById("chat").appendChild(div);
-
-  document.getElementById("chat").scrollTop =
-    document.getElementById("chat").scrollHeight;
+/* STATUS */
+function setStatus(msg) {
+  document.getElementById("status").innerText = msg;
 }
 
-function typing() {
+/* REGISTER */
+async function register() {
 
-  const div = document.createElement("div");
+  let usuario = document.getElementById("usuario").value;
+  let senha = document.getElementById("senha").value;
 
-  div.className = "msg bot typing";
-  div.id = "typing";
+  let res = await fetch("/register", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({usuario, senha})
+  });
 
-  div.textContent = "L.I.Z.A está digitando...";
-
-  document.getElementById("chat").appendChild(div);
+  let data = await res.json();
+  setStatus(data.message);
 }
 
-function removeTyping() {
+/* LOGIN */
+async function login() {
 
-  const el = document.getElementById("typing");
+  let usuario = document.getElementById("usuario").value;
+  let senha = document.getElementById("senha").value;
 
-  if (el) {
-    el.remove();
+  let res = await fetch("/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({usuario, senha})
+  });
+
+  let data = await res.json();
+
+  if (data.success) {
+
+    logado = true;
+    localStorage.setItem("logado", "true");
+    localStorage.setItem("usuario", usuario);
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("chatBox").style.display = "flex";
+
+  } else {
+    setStatus(data.message);
   }
 }
 
+/* LOGOUT */
+function logout() {
+  localStorage.removeItem("logado");
+  localStorage.removeItem("usuario");
+  location.reload();
+}
+
+/* CHAT */
 async function enviar() {
 
-  let msg = document.getElementById("msg").value.trim();
+  if (!logado) return;
 
+  let msg = document.getElementById("msg").value;
   if (!msg) return;
 
-  addMsg("Você: " + msg, "user");
-
+  addMsg(msg, "user");
   document.getElementById("msg").value = "";
-
-  typing();
 
   try {
 
     let res = await fetch("/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
-        message: msg
+        message: msg,
+        usuario: localStorage.getItem("usuario")
       })
     });
 
     let data = await res.json();
-
-    removeTyping();
-
-    addMsg("L.I.Z.A: " + data.text, "bot");
-
-    falarTexto(data.text);
+    addMsg(data.text, "bot");
 
   } catch (e) {
-
-    removeTyping();
-
-    addMsg("ERRO: " + e.message, "bot");
+    addMsg("Erro: " + e.message, "bot");
   }
 }
 
-function falarTexto(texto) {
-
-  speechSynthesis.cancel();
-
-  let speech = new SpeechSynthesisUtterance(texto);
-
-  speech.lang = "pt-BR";
-  speech.rate = 1;
-  speech.pitch = 1.1;
-  speech.volume = 1;
-
-  let voices = speechSynthesis.getVoices();
-
-  let vozPt = voices.find(v =>
-    v.lang.toLowerCase().includes("pt")
-  );
-
-  if (vozPt) {
-    speech.voice = vozPt;
-  }
-
-  speechSynthesis.speak(speech);
-}
-
-function falar() {
-
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert("Seu navegador não suporta reconhecimento de voz.");
-    return;
-  }
-
-  let rec = new SpeechRecognition();
-
-  rec.lang = "pt-BR";
-
-  rec.onresult = function(event) {
-
-    document.getElementById("msg").value =
-      event.results[0][0].transcript;
-
-    enviar();
-  };
-
-  rec.start();
-}
-
-window.speechSynthesis.onvoiceschanged = () => {
-  speechSynthesis.getVoices();
-};
-
-document.getElementById("msg").addEventListener("keydown", function(event) {
-  if (event.key === "Enter") {
+/* ENTER TO SEND */
+document.getElementById("msg").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
     enviar();
   }
 });
+
+/* ADD MESSAGE */
+function addMsg(text, type) {
+  let div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerText = text;
+
+  document.getElementById("chat").appendChild(div);
+  document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+}
 
 </script>
 
