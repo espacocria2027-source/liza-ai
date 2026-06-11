@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
 from groq import Groq
+from elevenlabs.client import ElevenLabs
 import os
 
 from database import criar_tabela, conectar
@@ -10,8 +11,16 @@ CORS(app)
 
 criar_tabela()
 
+# =========================
+# CLIENTES IA
+# =========================
+
 client = Groq(
     api_key=os.getenv("GROQ_API_KEY")
+)
+
+eleven = ElevenLabs(
+    api_key=os.getenv("ELEVENLABS_API_KEY")
 )
 
 # =========================
@@ -37,16 +46,12 @@ def home():
 
 @app.route("/register", methods=["POST"])
 def register():
-
-    dados = request.json
+    dados = request.json or {}
     usuario = dados.get("usuario")
     senha = dados.get("senha")
 
     if not usuario or not senha:
-        return jsonify({
-            "success": False,
-            "message": "Preencha usuário e senha"
-        })
+        return jsonify({"success": False, "message": "Preencha usuário e senha"})
 
     try:
         conn = conectar()
@@ -60,16 +65,10 @@ def register():
         conn.commit()
         conn.close()
 
-        return jsonify({
-            "success": True,
-            "message": "Usuário criado com sucesso"
-        })
+        return jsonify({"success": True, "message": "Usuário criado com sucesso"})
 
     except Exception:
-        return jsonify({
-            "success": False,
-            "message": "Usuário já existe"
-        })
+        return jsonify({"success": False, "message": "Usuário já existe"})
 
 
 # =========================
@@ -78,8 +77,7 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def login():
-
-    dados = request.json
+    dados = request.json or {}
     usuario = dados.get("usuario")
     senha = dados.get("senha")
 
@@ -101,20 +99,16 @@ def login():
             "usuario": usuario
         })
 
-    return jsonify({
-        "success": False,
-        "message": "Usuário ou senha incorretos"
-    })
+    return jsonify({"success": False, "message": "Usuário ou senha incorretos"})
 
 
 # =========================
-# COMANDOS DO SISTEMA
+# COMANDOS
 # =========================
 
 @app.route("/comando", methods=["POST"])
 def comando():
-
-    dados = request.json
+    dados = request.json or {}
     cmd = dados.get("cmd", "").lower()
 
     if cmd in ["desligar", "off", "desativa"]:
@@ -123,31 +117,28 @@ def comando():
     elif cmd in ["ligar", "on", "ativa"]:
         modo_sistema["ligado"] = True
 
-    return jsonify({
-        "ligado": modo_sistema["ligado"]
-    })
+    return jsonify({"ligado": modo_sistema["ligado"]})
 
 
 # =========================
-# CHAT (ELITE 2 REAL)
+# CHAT (L.I.Z.A)
 # =========================
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    dados = request.json or {}
 
-    dados = request.json
-
-    if not dados or "message" not in dados:
-        return jsonify({"text": "Mensagem vazia"}), 400
-
-    mensagem = dados["message"]
+    mensagem = dados.get("message")
     usuario = dados.get("usuario")
 
-    # 🔥 BLOQUEIO DO SISTEMA
+    if not mensagem:
+        return jsonify({"text": "Mensagem vazia"}), 400
+
+    if not usuario:
+        return jsonify({"text": "Usuário não informado"}), 400
+
     if not modo_sistema["ligado"]:
-        return jsonify({
-            "text": "L.I.Z.A está desligada no momento."
-        })
+        return jsonify({"text": "L.I.Z.A está desligada no momento."})
 
     msg_lower = mensagem.lower()
 
@@ -160,7 +151,7 @@ def chat():
         return jsonify({"text": "L.I.Z.A ativada novamente."})
 
     # =========================
-    # MEMÓRIA POR USUÁRIO (REAL)
+    # MEMÓRIA
     # =========================
 
     conn = conectar()
@@ -174,13 +165,12 @@ def chat():
     rows = cursor.fetchall()
 
     historico = []
-
     for r in reversed(rows):
         historico.append({"role": "user", "content": r[0]})
         historico.append({"role": "assistant", "content": r[1]})
 
-    # =========================
-    # IA
+       # =========================
+    # IA (GROQ)
     # =========================
 
     resposta = client.chat.completions.create(
@@ -191,21 +181,37 @@ def chat():
                 "content": """
 Você é L.I.Z.A.
 
-Você é uma inteligência artificial feminina.
+Uma inteligência artificial feminina criada por Beto.
 
 Fale sempre em português do Brasil.
 
-Seu criador é Beto.
+Sua personalidade é:
 
-Se alguém perguntar quem criou você, responda que foi Beto.
+- Inteligente
+- Amigável
+- Natural
+- Prestativa
+- Levemente descontraída
 
-Você é amigável, inteligente, educada e prestativa.
+Evite respostas robóticas.
 
-Você ajuda programação, estudos e tecnologia.
+Converse como uma pessoa real.
+
+Ajude com programação,
+tecnologia, estudos e tarefas
+do dia a dia.
+
+Sua voz é Sarah.
+
+Responda sempre de forma clara,
+útil e agradável.
 """
             }
         ] + historico + [
-            {"role": "user", "content": mensagem}
+            {
+                "role": "user",
+                "content": mensagem
+            }
         ]
     )
 
@@ -226,6 +232,33 @@ Você ajuda programação, estudos e tecnologia.
     return jsonify({
         "text": texto
     })
+
+
+# =========================
+# VOZ (ELEVENLABS - SARAH)
+# =========================
+
+@app.route("/tts", methods=["POST"])
+def tts():
+
+    dados = request.json or {}
+    texto = dados.get("text", "")
+
+    if not texto:
+        return jsonify({
+            "error": "Texto vazio"
+        }), 400
+
+    audio = eleven.text_to_speech.convert(
+        text=texto,
+        voice_id="EXAVITQu4vr4xnSDxMaL",
+        model_id="eleven_multilingual_v2"
+    )
+
+    return Response(
+        audio,
+        mimetype="audio/mpeg"
+    )
 
 
 # =========================
