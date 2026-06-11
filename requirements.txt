@@ -3,4 +3,4 @@ flask-cors
 groq
 gunicorn
 requests
-elevenlabs
+elevenlabs==2.52.0
