@@ -2,264 +2,333 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>L.I.Z.A ELITE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L.I.Z.A ELITE V2</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:Arial,sans-serif;
+height:100vh;
+background:linear-gradient(135deg,#050816,#0b1025,#1b0f35);
+color:white;
+overflow:hidden;
 }
 
-/* LOGIN */
-#loginBox {
-  background: #1a1a1a;
-  padding: 20px;
-  border-radius: 10px;
-  width: 320px;
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:radial-gradient(circle at center,rgba(0,255,255,.12),transparent 60%);
+animation:pulse 6s infinite;
+pointer-events:none;
 }
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 6px;
-  border: none;
-  outline: none;
+@keyframes pulse{
+50%{transform:scale(1.15)}
 }
 
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background: #333;
-  color: white;
+#loginBox{
+width:360px;
+background:rgba(10,20,40,.75);
+backdrop-filter:blur(20px);
+padding:25px;
+border-radius:20px;
+border:1px solid rgba(0,255,255,.25);
+box-shadow:0 0 30px rgba(0,255,255,.2);
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
 }
 
-button:hover {
-  background: #444;
+h3{text-align:center;margin-bottom:15px;color:#9cfaff}
+
+input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+outline:none;
+border-radius:12px;
+background:rgba(255,255,255,.08);
+color:white;
 }
 
-/* CHAT */
-#chatBox {
-  display: none;
-  width: 100%;
-  height: 100vh;
-  flex-direction: column;
+button{
+cursor:pointer;
+border:none;
+border-radius:12px;
+padding:12px;
+color:white;
+font-weight:bold;
+background:linear-gradient(90deg,#00cfff,#8e24aa);
 }
 
-header {
-  padding: 15px;
-  background: #1a1a1a;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+#loginBox button{
+width:100%;
+margin-top:8px;
 }
 
-#chat {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
+#chatBox{
+display:none;
+height:100vh;
+flex-direction:column;
 }
 
-.msg {
-  padding: 10px;
-  margin: 5px;
-  border-radius: 10px;
-  max-width: 80%;
-  white-space: pre-wrap;
+header{
+height:75px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 20px;
+background:rgba(10,15,30,.8);
+backdrop-filter:blur(15px);
+border-bottom:1px solid rgba(0,255,255,.2);
 }
 
-.user {
-  background: #1976d2;
-  margin-left: auto;
+.logo{
+display:flex;
+align-items:center;
+gap:15px;
 }
 
-.bot {
-  background: #2e7d32;
+.avatar{
+width:50px;
+height:50px;
+border-radius:50%;
+background:linear-gradient(135deg,#00e5ff,#9c27b0);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+box-shadow:0 0 20px rgba(0,255,255,.4);
 }
 
-#inputArea {
-  display: flex;
-  padding: 10px;
-  background: #1a1a1a;
+#chat{
+flex:1;
+overflow-y:auto;
+padding:20px;
+display:flex;
+flex-direction:column;
 }
 
-#msg {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  outline: none;
+.msg{
+max-width:75%;
+padding:14px;
+margin:8px 0;
+border-radius:18px;
+white-space:pre-wrap;
 }
 
-.sendBtn {
-  margin-left: 8px;
-  width: 100px;
+.user{
+margin-left:auto;
+background:linear-gradient(135deg,#00bcd4,#7b1fa2);
 }
 
-#status {
-  font-size: 12px;
-  opacity: 0.7;
+.bot{
+background:rgba(255,255,255,.08);
+border:1px solid rgba(0,255,255,.2);
 }
+
+#inputArea{
+display:flex;
+gap:10px;
+padding:15px;
+background:rgba(10,15,30,.85);
+}
+
+#msg{
+margin:0;
+flex:1;
+}
+
+.sendBtn{
+width:120px;
+}
+
+.micBtn{
+width:60px;
+font-size:22px;
+}
+
+#status{
+margin-top:10px;
+text-align:center;
+color:#9cfaff;
+}
+
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-thumb{background:#00cfff;border-radius:20px}
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
 <div id="loginBox">
-  <h3>🔐 L.I.Z.A LOGIN</h3>
+<h3>✨ L.I.Z.A ELITE</h3>
 
-  <input id="usuario" placeholder="Usuário">
-  <input id="senha" type="password" placeholder="Senha">
+<input id="usuario" placeholder="Usuário">
+<input id="senha" type="password" placeholder="Senha">
 
-  <button onclick="login()">Entrar</button>
-  <button onclick="register()">Cadastrar</button>
+<button onclick="login()">Entrar</button>
+<button onclick="register()">Cadastrar</button>
 
-  <p id="status"></p>
+<p id="status"></p>
 </div>
 
-<!-- CHAT -->
 <div id="chatBox">
 
-  <header>
-    🤖 L.I.Z.A ELITE
-    <button onclick="logout()" style="width:auto;padding:8px;">Sair</button>
-  </header>
+<header>
+<div class="logo">
+<div class="avatar">🤖</div>
+<div>
+<div><strong>L.I.Z.A ELITE</strong></div>
+<div style="font-size:12px;color:#9cfaff;">Assistente Inteligente</div>
+</div>
+</div>
 
-  <div id="chat"></div>
+<button onclick="logout()" style="width:auto;">Sair</button>
+</header>
 
-  <div id="inputArea">
-    <input id="msg" placeholder="Digite sua mensagem...">
-    <button class="sendBtn" onclick="enviar()">Enviar</button>
-  </div>
+<div id="chat"></div>
+
+<div id="inputArea">
+<button class="micBtn" onclick="microfone()">🎤</button>
+<input id="msg" placeholder="Digite sua mensagem...">
+<button class="sendBtn" onclick="enviar()">Enviar</button>
+</div>
 
 </div>
 
 <script>
-
 let logado = localStorage.getItem("logado") === "true";
 
-/* INIT */
 window.onload = () => {
-  if (logado) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("chatBox").style.display = "flex";
-  }
+if(logado){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("chatBox").style.display="flex";
+}
 };
 
-/* STATUS */
-function setStatus(msg) {
-  document.getElementById("status").innerText = msg;
+function setStatus(msg){
+document.getElementById("status").innerText=msg;
 }
 
-/* REGISTER */
-async function register() {
+async function register(){
+let usuario=document.getElementById("usuario").value;
+let senha=document.getElementById("senha").value;
 
-  let usuario = document.getElementById("usuario").value;
-  let senha = document.getElementById("senha").value;
-
-  let res = await fetch("/register", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({usuario, senha})
-  });
-
-  let data = await res.json();
-  setStatus(data.message);
-}
-
-/* LOGIN */
-async function login() {
-
-  let usuario = document.getElementById("usuario").value;
-  let senha = document.getElementById("senha").value;
-
-  let res = await fetch("/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({usuario, senha})
-  });
-
-  let data = await res.json();
-
-  if (data.success) {
-
-    logado = true;
-    localStorage.setItem("logado", "true");
-    localStorage.setItem("usuario", usuario);
-
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("chatBox").style.display = "flex";
-
-  } else {
-    setStatus(data.message);
-  }
-}
-
-/* LOGOUT */
-function logout() {
-  localStorage.removeItem("logado");
-  localStorage.removeItem("usuario");
-  location.reload();
-}
-
-/* CHAT */
-async function enviar() {
-
-  if (!logado) return;
-
-  let msg = document.getElementById("msg").value;
-  if (!msg) return;
-
-  addMsg(msg, "user");
-  document.getElementById("msg").value = "";
-
-  try {
-
-    let res = await fetch("/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        message: msg,
-        usuario: localStorage.getItem("usuario")
-      })
-    });
-
-    let data = await res.json();
-    addMsg(data.text, "bot");
-
-  } catch (e) {
-    addMsg("Erro: " + e.message, "bot");
-  }
-}
-
-/* ENTER TO SEND */
-document.getElementById("msg").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") {
-    enviar();
-  }
+let res=await fetch("/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({usuario,senha})
 });
 
-/* ADD MESSAGE */
-function addMsg(text, type) {
-  let div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-
-  document.getElementById("chat").appendChild(div);
-  document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+let data=await res.json();
+setStatus(data.message);
 }
 
+async function login(){
+let usuario=document.getElementById("usuario").value;
+let senha=document.getElementById("senha").value;
+
+let res=await fetch("/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({usuario,senha})
+});
+
+let data=await res.json();
+
+if(data.success){
+logado=true;
+localStorage.setItem("logado","true");
+localStorage.setItem("usuario",usuario);
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("chatBox").style.display="flex";
+}else{
+setStatus(data.message);
+}
+}
+
+function logout(){
+localStorage.removeItem("logado");
+localStorage.removeItem("usuario");
+location.reload();
+}
+
+async function enviar(){
+
+if(!logado) return;
+
+let msg=document.getElementById("msg").value;
+
+if(!msg) return;
+
+addMsg(msg,"user");
+
+document.getElementById("msg").value="";
+
+try{
+
+let res=await fetch("/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+message:msg,
+usuario:localStorage.getItem("usuario")
+})
+});
+
+let data=await res.json();
+
+addMsg(data.text,"bot");
+
+}catch(e){
+addMsg("Erro: "+e.message,"bot");
+}
+}
+
+function microfone(){
+
+const reconhecimento =
+new (window.SpeechRecognition ||
+window.webkitSpeechRecognition)();
+
+reconhecimento.lang="pt-BR";
+
+reconhecimento.onresult=function(event){
+
+document.getElementById("msg").value =
+event.results[0][0].transcript;
+
+enviar();
+};
+
+reconhecimento.start();
+}
+
+document.addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+enviar();
+}
+});
+
+function addMsg(text,type){
+
+let div=document.createElement("div");
+
+div.className="msg "+type;
+
+div.innerText=text;
+
+document.getElementById("chat").appendChild(div);
+
+document.getElementById("chat").scrollTop =
+document.getElementById("chat").scrollHeight;
+}
 </script>
 
 </body>
