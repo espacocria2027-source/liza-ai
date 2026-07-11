@@ -1,1 +1,0 @@
-print("L.I.Z.A online")
