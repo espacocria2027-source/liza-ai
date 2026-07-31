@@ -4,6 +4,8 @@ L.I.Z.A CORE
 ====================================================
 """
 
+import agents.registry
+
 from core.state import state
 from core.services import services
 

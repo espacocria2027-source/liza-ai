@@ -5,22 +5,45 @@ Arquivo principal
 ====================================================
 """
 
+# ====================================================
+# VARIÁVEIS DE AMBIENTE
+# ====================================================
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+print("=" * 60)
+print("GROQ_API_KEY =", os.getenv("GROQ_API_KEY"))
+print("=" * 60)
+
+# ====================================================
+# IMPORTS
+# ====================================================
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 
 from database import criar_tabela
 
-# ==========================
+# ====================================================
+# REGISTROS
+# ====================================================
+
+import agents.registry
+import plugins.registry
+import listeners.logger
+
+# ====================================================
 # BLUEPRINTS
-# ==========================
+# ====================================================
 
 from api.routes.auth import auth_bp
 from api.routes.chat import chat_bp
 from api.routes.command import command_bp
 from api.routes.voice import voice_bp
 from api.routes.image import image_bp
-import listeners.logger
-import plugins.registry
 from api.routes.android import android_bp
 
 
@@ -30,53 +53,47 @@ def create_app():
 
     CORS(app)
 
-    # ==========================
-    # BANCO DE DADOS
-    # ==========================
+    # ====================================================
+    # BANCO
+    # ====================================================
 
     criar_tabela()
 
-    # ==========================
-    # ROTAS
-    # ==========================
+    # ====================================================
+    # BLUEPRINTS
+    # ====================================================
 
     app.register_blueprint(auth_bp)
-
     app.register_blueprint(chat_bp)
-
     app.register_blueprint(command_bp)
-
     app.register_blueprint(voice_bp)
-
     app.register_blueprint(image_bp)
-
     app.register_blueprint(android_bp)
-    
 
-    # ==========================
+    # ====================================================
     # HOME
-    # ==========================
+    # ====================================================
 
-    @app.route("/", methods=["GET"])
+    @app.route("/")
     def home():
 
         return jsonify({
 
             "name": "L.I.Z.A",
 
-            "status": "online",
+            "version": "3.0",
 
-            "version": "2.0",
+            "developer": "Beto",
 
-            "developer": "Beto"
+            "status": "online"
 
         })
 
-    # ==========================
-    # HEALTH CHECK
-    # ==========================
+    # ====================================================
+    # HEALTH
+    # ====================================================
 
-    @app.route("/health", methods=["GET"])
+    @app.route("/health")
     def health():
 
         return jsonify({
@@ -87,19 +104,36 @@ def create_app():
 
         })
 
+    # ====================================================
+    # AGENTES
+    # ====================================================
+
+    @app.route("/agents")
+    def agents():
+
+        from agents.agent_manager import agent_manager
+
+        return jsonify({
+
+            "registered_agents": list(
+                agent_manager.agents.keys()
+            )
+
+        })
+
     return app
 
 
-# ==========================
+# ====================================================
 # APP
-# ==========================
+# ====================================================
 
 app = create_app()
 
 
-# ==========================
+# ====================================================
 # MAIN
-# ==========================
+# ====================================================
 
 if __name__ == "__main__":
 

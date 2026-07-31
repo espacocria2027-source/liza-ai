@@ -8,3 +8,7 @@ from agents.android_agent import AndroidAgent
 agent_manager.register(ChatAgent())
 agent_manager.register(ProgrammerAgent())
 agent_manager.register(AndroidAgent())
+print("=================================")
+print("AGENTES REGISTRADOS")
+print(agent_manager.agents)
+print("=================================")

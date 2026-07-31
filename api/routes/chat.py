@@ -17,7 +17,7 @@ chat_bp = Blueprint(
 @chat_bp.route("/chat", methods=["POST"])
 def chat():
 
-    dados = request.json or {}
+    dados = request.get_json(force=True, silent=True) or {}
 
     usuario = dados.get(
 
