@@ -1,44 +1,121 @@
 """
-=========================================
-AI Intent Detector
-=========================================
+====================================================
+L.I.Z.A AI Intent Detector
+====================================================
 """
 
 import json
+import re
 
 from ai.providers.model_provider import provider
 
 
 SYSTEM_PROMPT = """
-Você é um classificador de intenções.
+Você é o classificador de intenções da L.I.Z.A.
 
-Analise a mensagem do usuário.
+Sua única tarefa é classificar a intenção da mensagem.
 
-Responda APENAS um JSON.
+Responda APENAS um JSON válido.
 
 Nunca escreva explicações.
 
-Tipos permitidos:
+Nunca utilize markdown.
+
+Nunca utilize ```json.
+
+As intenções permitidas são:
+
+- chat
+- action
+- programming
+
+Regras:
 
 chat
+- Conversas
+- Perguntas
+- Explicações
+- Curiosidades
+- História
+- Matemática
+- Ciências
+- Estudos
+- Saudações
+
+programming
+- Código
+- Python
+- Java
+- Kotlin
+- HTML
+- CSS
+- JavaScript
+- APIs
+- Banco de dados
+- Programação
 
 action
+- Abrir aplicativos
+- Abrir YouTube
+- Abrir Spotify
+- Abrir Google
+- WhatsApp
+- Ligações
+- Configurações
+- Volume
+- Android
 
-search
+Exemplos
 
-automation
+Mensagem:
+Olá
 
-Formato:
+Resposta:
 
 {
     "intent":"chat",
     "action":"",
     "parameters":{}
 }
+
+Mensagem:
+Quem descobriu o Brasil?
+
+Resposta:
+
+{
+    "intent":"chat",
+    "action":"",
+    "parameters":{}
+}
+
+Mensagem:
+Explique herança em Python.
+
+Resposta:
+
+{
+    "intent":"programming",
+    "action":"",
+    "parameters":{}
+}
+
+Mensagem:
+Abra o Spotify.
+
+Resposta:
+
+{
+    "intent":"action",
+    "action":"OPEN_SPOTIFY",
+    "parameters":{}
+}
+
+Retorne SOMENTE o JSON.
 """
 
 
-def detect(message):
+def detect(message: str):
 
     messages = [
 
@@ -54,13 +131,56 @@ def detect(message):
 
     ]
 
-    resposta = provider.chat(messages)
-
     try:
 
-        return json.loads(resposta)
+        resposta = provider.reasoning(messages)
 
-    except Exception:
+        print("\n========== INTENT DETECTOR ==========")
+        print(resposta)
+        print("=====================================\n")
+
+        texto = resposta.strip()
+
+        # Remove markdown caso o modelo responda ```json
+
+        texto = re.sub(
+            r"^```json",
+            "",
+            texto,
+            flags=re.IGNORECASE
+        )
+
+        texto = texto.replace(
+            "```",
+            ""
+        ).strip()
+
+        resultado = json.loads(texto)
+
+        return {
+
+            "intent": resultado.get(
+                "intent",
+                "chat"
+            ).lower(),
+
+            "action": resultado.get(
+                "action",
+                ""
+            ),
+
+            "parameters": resultado.get(
+                "parameters",
+                {}
+            )
+
+        }
+
+    except Exception as e:
+
+        print("\n========== ERRO INTENT ==========")
+        print(e)
+        print("=================================\n")
 
         return {
 

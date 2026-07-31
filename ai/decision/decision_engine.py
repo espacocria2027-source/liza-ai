@@ -11,150 +11,78 @@ from ai.decision.ai_intent_detector import detect
 class DecisionEngine:
 
     def __init__(self):
-        pass
+
+        self.intent_map = {
+
+            # Conversa
+            "chat": "chat",
+            "conversation": "chat",
+            "assistant": "chat",
+            "search": "chat",
+            "vision": "chat",
+            "automation": "chat",
+            "calendar": "chat",
+            "music": "chat",
+
+            # Programação
+            "programming": "programmer",
+            "code": "programmer",
+            "developer": "programmer",
+
+            # Android
+            "action": "android",
+            "android": "android",
+            "device": "android"
+
+        }
 
     def process(self, usuario: str, mensagem: str) -> dict:
         """
-        Processa uma mensagem do usuário e escolhe
-        qual agente será responsável pela execução.
+        Detecta a intenção do usuário e encaminha
+        para o agente correto.
         """
 
         try:
+
             resultado = detect(mensagem)
 
         except Exception as e:
+
             return {
+
                 "type": "error",
+
                 "text": f"Erro ao detectar intenção: {str(e)}"
+
             }
 
-        intent = resultado.get("intent", "chat").lower()
+        intent = resultado.get(
 
-        # ===============================
-        # Conversa normal
-        # ===============================
+            "intent",
 
-        if intent == "chat":
+            "chat"
 
-            return agent_manager.execute(
-                "chat",
-                usuario,
-                mensagem
-            )
+        ).lower()
 
-        # ===============================
-        # Programação
-        # ===============================
+        agent = self.intent_map.get(
 
-        elif intent in [
-            "programming",
-            "code",
-            "developer"
-        ]:
+            intent,
 
-            return agent_manager.execute(
-                "programmer",
-                usuario,
-                mensagem
-            )
+            "chat"
 
-        # ===============================
-        # Controle Android
-        # ===============================
-
-        elif intent in [
-            "action",
-            "android",
-            "device"
-        ]:
-
-            return agent_manager.execute(
-                "android",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Pesquisa
-        # ===============================
-
-        elif intent == "search":
-
-            return agent_manager.execute(
-                "search",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Automações
-        # ===============================
-
-        elif intent == "automation":
-
-            return agent_manager.execute(
-                "automation",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Visão Computacional
-        # ===============================
-
-        elif intent == "vision":
-
-            return agent_manager.execute(
-                "vision",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Assistente Pessoal
-        # ===============================
-
-        elif intent == "assistant":
-
-            return agent_manager.execute(
-                "assistant",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Música
-        # ===============================
-
-        elif intent == "music":
-
-            return agent_manager.execute(
-                "music",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Agenda
-        # ===============================
-
-        elif intent == "calendar":
-
-            return agent_manager.execute(
-                "calendar",
-                usuario,
-                mensagem
-            )
-
-        # ===============================
-        # Fallback
-        # ===============================
-
-        return agent_manager.execute(
-            "chat",
-            usuario,
-            mensagem
         )
+
+        resposta = agent_manager.execute(
+
+            agent,
+
+            usuario,
+
+            mensagem
+
+        )
+
+        return resposta
 
 
 decision_engine = DecisionEngine()

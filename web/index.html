@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>L.I.Z.A.</title>
+
+    <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet"
+        href="css/style.css">
+
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <!-- ===========================
+             SIDEBAR
+        ============================ -->
+
+        <aside class="sidebar">
+
+            <div class="logo">
+
+                <div class="logo-circle">
+
+                    L
+
+                </div>
+
+                <div>
+
+                    <h2>L.I.Z.A.</h2>
+
+                    <span>Artificial Intelligence</span>
+
+                </div>
+
+            </div>
+
+            <button
+                id="newChat"
+                class="new-chat">
+
+                + Nova conversa
+
+            </button>
+
+            <div
+                id="history"
+                class="history">
+
+            </div>
+
+            <div class="sidebar-footer">
+
+                <button>
+
+                    ⚙ Configurações
+
+                </button>
+
+            </div>
+
+        </aside>
+
+        <!-- ===========================
+              CHAT
+        ============================ -->
+
+        <main class="chat-container">
+
+            <header class="topbar">
+
+                <div>
+
+                    <h1>
+
+                        L.I.Z.A.
+
+                    </h1>
+
+                    <span>
+
+                        Inteligência Artificial
+
+                    </span>
+
+                </div>
+
+                <div class="online">
+
+                    <span class="dot"></span>
+
+                    Online
+
+                </div>
+
+            </header>
+
+            <!-- =======================
+                 CONVERSA
+            ======================== -->
+
+            <section
+                id="chat"
+                class="chat">
+
+                <div class="welcome">
+
+                    <img
+                        src="assets/avatar.png"
+                        alt="LIZA">
+
+                    <h2>
+
+                        Olá!
+
+                    </h2>
+
+                    <p>
+
+                        Sou a L.I.Z.A.
+
+                        Como posso ajudar você hoje?
+
+                    </p>
+
+                </div>
+                                <!-- ===========================
+                     MODELOS DE MENSAGEM
+                ============================ -->
+
+                <!-- Mensagem da L.I.Z.A. -->
+
+                <template id="assistantTemplate">
+
+                    <div class="message assistant">
+
+                        <div class="avatar">
+
+                            <img
+                                src="assets/avatar.png"
+                                alt="LIZA">
+
+                        </div>
+
+                        <div class="message-body">
+
+                            <div class="message-header">
+
+                                <span class="name">
+
+                                    L.I.Z.A.
+
+                                </span>
+
+                            </div>
+
+                            <div class="message-content">
+
+                            </div>
+
+                            <div class="message-actions">
+
+                                <button
+                                    class="copy">
+
+                                    📋 Copiar
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </template>
+
+                <!-- Mensagem do Usuário -->
+
+                <template id="userTemplate">
+
+                    <div class="message user">
+
+                        <div class="message-body">
+
+                            <div class="message-header">
+
+                                <span class="name">
+
+                                    Você
+
+                                </span>
+
+                            </div>
+
+                            <div class="message-content">
+
+                            </div>
+
+                        </div>
+
+                        <div class="avatar user-avatar">
+
+                            <div class="user-circle">
+
+                                U
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </template>
+
+                <!-- Template para Código -->
+
+                <template id="codeTemplate">
+
+                    <div class="code-block">
+
+                        <div class="code-header">
+
+                            <span class="language">
+
+                                Código
+
+                            </span>
+
+                            <button class="copy-code">
+
+                                Copiar
+
+                            </button>
+
+                        </div>
+
+                        <pre>
+
+<code>
+
+</code>
+
+                        </pre>
+
+                    </div>
+
+                </template>
+
+                <!-- Template para Imagem -->
+
+                <template id="imageTemplate">
+
+                    <div class="message assistant">
+
+                        <div class="avatar">
+
+                            <img
+                                src="assets/avatar.png"
+                                alt="LIZA">
+
+                        </div>
+
+                        <div class="message-body">
+
+                            <img
+                                class="chat-image"
+                                src="">
+
+                        </div>
+
+                    </div>
+
+                </template>
+
+            </section>
+                        <!-- =======================
+                 L.I.Z.A DIGITANDO
+            ======================== -->
+
+            <div
+                id="typing"
+                class="typing">
+
+                <div class="typing-avatar">
+
+                    L
+
+                </div>
+
+                <div class="typing-dots">
+
+                    <span></span>
+
+                    <span></span>
+
+                    <span></span>
+
+                </div>
+
+            </div>
+
+            <!-- =======================
+                 ÁREA DE ENTRADA
+            ======================== -->
+
+            <footer class="chat-footer">
+
+                <div class="input-box">
+
+                    <button
+                        id="imageButton"
+                        class="icon-button"
+                        title="Enviar imagem">
+
+                        📷
+
+                    </button>
+
+                    <input
+                        type="file"
+                        id="imageInput"
+                        accept="image/*"
+                        hidden>
+
+                    <textarea
+
+                        id="message"
+
+                        placeholder="Envie uma mensagem para a L.I.Z.A..."
+
+                        rows="1"
+
+                    ></textarea>
+
+                    <button
+
+                        id="voiceButton"
+
+                        class="icon-button"
+
+                        title="Falar">
+
+                        🎤
+
+                    </button>
+
+                    <button
+
+                        id="send"
+
+                        class="send-button"
+
+                        title="Enviar">
+
+                        ➜
+
+                    </button>
+
+                </div>
+
+                <div class="footer-text">
+
+                    A L.I.Z.A. pode cometer erros. Sempre confirme informações importantes.
+
+                </div>
+
+            </footer>
+
+        </main>
+
+    </div>
