@@ -19,9 +19,9 @@ from api.routes.chat import chat_bp
 from api.routes.command import command_bp
 from api.routes.voice import voice_bp
 from api.routes.image import image_bp
-from api.android.android import android_bp
 import listeners.logger
 import plugins.registry
+from api.routes.android import android_bp
 
 
 def create_app():
