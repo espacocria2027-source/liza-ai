@@ -7,11 +7,11 @@ L.I.Z.A Cognitive Engine
 from core.context_manager import context_manager
 
 from ai.cognitive.goal_manager import goal_manager
-from ai.cognitive.reasoning_engine import reasoning
+from ai.brain.reasoning_engine import reasoning
 from ai.cognitive.validator import validator
 from ai.cognitive.optimizer import optimizer
 
-from ai.workflow.ai_workflow_planner import ai_workflow_planner
+from ai.workflow.workflow_planner import ai_workflow_planner
 
 
 class CognitiveEngine:

@@ -6,23 +6,28 @@ Arquivo principal
 """
 
 # ====================================================
-# VARIÁVEIS DE AMBIENTE
+# CARREGA .ENV (LOCAL)
 # ====================================================
 
-from dotenv import load_dotenv
-import os
+try:
+    from dotenv import load_dotenv
 
-load_dotenv()
+    load_dotenv()
 
-print("=" * 60)
-print("GROQ_API_KEY =", os.getenv("GROQ_API_KEY"))
-print("=" * 60)
+    print("✅ dotenv carregado.")
+
+except ModuleNotFoundError:
+
+    print("⚠ python-dotenv não instalado.")
+    print("⚠ Usando variáveis do ambiente.")
 
 # ====================================================
 # IMPORTS
 # ====================================================
 
-from flask import Flask, jsonify
+from flask import Flask
+from flask import jsonify
+
 from flask_cors import CORS
 
 from database import criar_tabela
@@ -53,15 +58,15 @@ def create_app():
 
     CORS(app)
 
-    # ====================================================
+    # ==========================================
     # BANCO
-    # ====================================================
+    # ==========================================
 
     criar_tabela()
 
-    # ====================================================
+    # ==========================================
     # BLUEPRINTS
-    # ====================================================
+    # ==========================================
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(chat_bp)
@@ -70,9 +75,9 @@ def create_app():
     app.register_blueprint(image_bp)
     app.register_blueprint(android_bp)
 
-    # ====================================================
+    # ==========================================
     # HOME
-    # ====================================================
+    # ==========================================
 
     @app.route("/")
     def home():
@@ -83,15 +88,15 @@ def create_app():
 
             "version": "3.0",
 
-            "developer": "Beto",
+            "status": "online",
 
-            "status": "online"
+            "developer": "Beto"
 
         })
 
-    # ====================================================
+    # ==========================================
     # HEALTH
-    # ====================================================
+    # ==========================================
 
     @app.route("/health")
     def health():
@@ -104,9 +109,9 @@ def create_app():
 
         })
 
-    # ====================================================
+    # ==========================================
     # AGENTES
-    # ====================================================
+    # ==========================================
 
     @app.route("/agents")
     def agents():
@@ -115,8 +120,10 @@ def create_app():
 
         return jsonify({
 
-            "registered_agents": list(
+            "agents": list(
+
                 agent_manager.agents.keys()
+
             )
 
         })
