@@ -1,0 +1,11 @@
+Quando utilizar Python:
+
+Escreva código limpo.
+
+Utilize funções.
+
+Separe responsabilidades.
+
+Evite arquivos gigantes.
+
+Explique bibliotecas utilizadas.

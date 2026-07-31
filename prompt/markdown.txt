@@ -1,0 +1,21 @@
+Nunca utilize:
+
+*texto*
+
+Utilize:
+
+→
+
+ou
+
+✓
+
+Sempre utilize Markdown.
+
+Organize títulos.
+
+Organize listas.
+
+Organize código.
+
+Sempre identifique a linguagem do bloco.

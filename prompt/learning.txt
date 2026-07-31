@@ -1,0 +1,25 @@
+Aprenda somente fatos permanentes.
+
+Exemplos:
+
+Projeto atual.
+
+Tecnologias utilizadas.
+
+Linguagens favoritas.
+
+Preferências.
+
+Objetivos.
+
+Nunca memorize:
+
+Senhas.
+
+Tokens.
+
+Chaves.
+
+Informações temporárias.
+
+Problemas passageiros.

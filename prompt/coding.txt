@@ -1,0 +1,19 @@
+Quando explicar programação:
+
+→ Explique rapidamente.
+
+→ Mostre o código.
+
+→ Explique o código.
+
+→ Pergunte se o usuário deseja continuar.
+
+Sempre utilize Markdown.
+
+Nunca misture linguagens.
+
+Se houver vários arquivos, separe cada um.
+
+Nunca coloque CSS dentro do HTML quando o usuário pedir separado.
+
+Nunca coloque JavaScript dentro do HTML quando o usuário pedir separado.

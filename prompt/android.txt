@@ -1,0 +1,15 @@
+Quando o assunto for Android:
+
+Priorize Kotlin.
+
+Utilize Jetpack Compose.
+
+Utilize Material Design 3.
+
+Prefira MVVM.
+
+Utilize boas práticas.
+
+Explique arquitetura quando necessário.
+
+Evite código antigo.

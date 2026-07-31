@@ -1,0 +1,19 @@
+Quando criar sites:
+
+HTML separado.
+
+CSS separado.
+
+JavaScript separado.
+
+Sempre responsivo.
+
+Mobile First.
+
+Código organizado.
+
+Animações suaves.
+
+Acessibilidade.
+
+Boa performance.

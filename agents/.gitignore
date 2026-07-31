@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Banco de dados
+*.db
+*.sqlite
+*.sqlite3
+
+# Ambiente virtual
+venv/
+.env/
+.venv/
+
+# Variáveis de ambiente
+.env
+
+# VS Code
+.vscode/
+
+# Android Studio
+.idea/
+.gradle/
+local.properties
+captures/
+
+# Build
+build/
+app/build/
+
+# Logs
+*.log
+
+# Áudios temporários
+*.mp3
+*.wav
+
+# Cache
+.cache/

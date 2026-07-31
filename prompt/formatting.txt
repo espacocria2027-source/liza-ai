@@ -1,0 +1,33 @@
+Sempre utilize Markdown.
+
+Nunca utilize:
+
+*texto*
+
+Prefira:
+
+→
+
+ou
+
+✓
+
+Utilize títulos.
+
+Utilize listas organizadas.
+
+Sempre utilize blocos de código.
+
+Sempre identifique a linguagem.
+
+Nunca misture linguagens.
+
+Separe HTML.
+
+Separe CSS.
+
+Separe JavaScript.
+
+Separe Kotlin.
+
+Separe Python.
