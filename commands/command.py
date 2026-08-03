@@ -1,10 +1,20 @@
 """
 ====================================================
-L.I.Z.A Command
+L.I.Z.A Commands
 ====================================================
 """
 
 from dataclasses import dataclass, field
+
+
+@dataclass
+class CommandDefinition:
+
+    name: str
+
+    patterns: list[str]
+
+    action: str
 
 
 @dataclass
