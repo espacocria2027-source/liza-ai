@@ -1,154 +1,100 @@
 """
-==================================================
-AI INTENT DETECTOR
-==================================================
+====================================================
+L.I.Z.A Decision Engine
+====================================================
 """
 
-import json
-import requests
-
-from config import MODEL_CHAT
+from agents.agent_manager import agent_manager
+from ai.decision.ai_intent_detector import detect
 
 
-OLLAMA = "http://localhost:11434/api/chat"
+class DecisionEngine:
 
+    def __init__(self):
 
-class AIIntentDetector:
+        self.intent_map = {
 
-    SYSTEM_PROMPT = """
-Você é um classificador de intenções.
+            "chat": "chat",
 
-Sua única função é retornar JSON.
+            "programmer": "programmer",
 
-Nunca explique.
-
-Nunca converse.
-
-Nunca utilize markdown.
-
-Nunca utilize ```.
-
-Responda apenas JSON válido.
-
-Ações disponíveis:
-
-chat
-
-open_app
-
-google_search
-
-youtube_search
-
-open_video
-
-call
-
-send_sms
-
-send_whatsapp
-
-send_email
-
-create_event
-
-create_alarm
-
-create_reminder
-
-open_maps
-
-open_camera
-
-take_photo
-
-open_gallery
-
-flashlight_on
-
-flashlight_off
-
-open_settings
-
-play_spotify
-
-open_browser
-
-share_text
-
-copy_text
-
-Caso não exista ação:
-
-chat
-
-Formato:
-
-{
-    "action":"...",
-    "data":{
-
-    }
-}
-"""
-
-    def detect(self, message):
-
-        body = {
-
-            "model": MODEL_CHAT,
-
-            "messages":[
-
-                {
-
-                    "role":"system",
-
-                    "content":self.SYSTEM_PROMPT
-
-                },
-
-                {
-
-                    "role":"user",
-
-                    "content":message
-
-                }
-
-            ],
-
-            "stream":False
+            "android": "android"
 
         }
 
-        response = requests.post(
-
-            OLLAMA,
-
-            json=body,
-
-            timeout=60
-
-        )
-
-        content = response.json()["message"]["content"]
-
-        content = content.strip()
+    def process(self, usuario: str, mensagem: str) -> dict:
+        """
+        Detecta a intenção do usuário e envia
+        para o agente correto.
+        """
 
         try:
 
-            return json.loads(content)
+            resultado = detect(mensagem)
 
-        except Exception:
+        except Exception as e:
 
             return {
 
-                "action":"chat",
+                "type": "error",
 
-                "data":{}
+                "text": f"Erro ao detectar intenção: {str(e)}"
 
             }
 
+        intent = resultado.get(
 
-ai_detector = AIIntentDetector()
+            "intent",
+
+            "chat"
+
+        ).lower()
+
+        # ==========================================
+        # ANDROID
+        # ==========================================
+
+        if intent == "android":
+
+            return agent_manager.execute(
+
+                "android",
+
+                usuario,
+
+                resultado
+
+            )
+
+        # ==========================================
+        # PROGRAMADOR
+        # ==========================================
+
+        if intent == "programmer":
+
+            return agent_manager.execute(
+
+                "programmer",
+
+                usuario,
+
+                mensagem
+
+            )
+
+        # ==========================================
+        # CHAT
+        # ==========================================
+
+        return agent_manager.execute(
+
+            "chat",
+
+            usuario,
+
+            mensagem
+
+        )
+
+
+decision_engine = DecisionEngine()

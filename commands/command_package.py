@@ -1,12 +1,12 @@
 """
-=========================================
+====================================================
 Command Package
-=========================================
+====================================================
 """
 
 from dataclasses import dataclass, field
 
-from ai.executor.command import Command
+from core.commands.command import Command
 
 
 @dataclass

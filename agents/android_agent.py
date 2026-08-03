@@ -1,9 +1,13 @@
+"""
+====================================================
+L.I.Z.A Android Agent
+====================================================
+"""
+
 from agents.base_agent import BaseAgent
 
-from ai.planner.planner import planner
-from ai.executor.action_executor import executor
-
-from android.bridge import create_execution
+from core.commands.command_factory import factory
+from core.commands.execution import builder
 
 
 class AndroidAgent(BaseAgent):
@@ -13,37 +17,55 @@ class AndroidAgent(BaseAgent):
 
         return "android"
 
-    def execute(self, usuario, mensagem):
+    def execute(self, usuario, command):
 
-        plano = planner.create(mensagem)
+        action = command.get(
 
-        pacote = executor.execute(plano)
+            "action",
 
-        execution = create_execution({
+            "UNKNOWN"
 
-            "success": pacote.success,
+        )
 
-            "message": pacote.message,
+        parameters = command.get(
 
-            "commands": [
+            "parameters",
 
-                {
+            {}
 
-                    "action": cmd.action,
+        )
 
-                    "parameters": cmd.parameters,
+        message = command.get(
 
-                    "wait_result": cmd.wait_result,
+            "message",
 
-                    "timeout": cmd.timeout
+            "Executando comando..."
 
-                }
+        )
 
-                for cmd in pacote.commands
+        # ==========================================
+        # CRIA PACOTE
+        # ==========================================
 
-            ]
+        package = factory.create(
 
-        })
+            action=action,
+
+            parameters=parameters,
+
+            message=message
+
+        )
+
+        # ==========================================
+        # GERA EXECUÇÃO
+        # ==========================================
+
+        execution = builder.build(
+
+            package
+
+        )
 
         return {
 
