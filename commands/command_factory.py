@@ -1,44 +1,19 @@
 """
 ====================================================
-Command Factory
+L.I.Z.A Command
 ====================================================
 """
 
-from core.commands.command import Command
-from core.commands.command_package import CommandPackage
+from dataclasses import dataclass, field
 
 
-class CommandFactory:
+@dataclass
+class Command:
 
-    def create(
+    action: str
 
-        self,
+    parameters: dict = field(default_factory=dict)
 
-        action,
+    wait_result: bool = True
 
-        parameters=None,
-
-        message="Executando comando."
-
-    ):
-
-        package = CommandPackage()
-
-        package.message = message
-
-        package.commands.append(
-
-            Command(
-
-                action=action,
-
-                parameters=parameters or {}
-
-            )
-
-        )
-
-        return package
-
-
-factory = CommandFactory()
+    timeout: int = 30

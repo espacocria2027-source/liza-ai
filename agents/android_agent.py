@@ -6,8 +6,8 @@ L.I.Z.A Android Agent
 
 from agents.base_agent import BaseAgent
 
-from core.commands.command_factory import factory
-from core.commands.execution import builder
+from commands.command_factory import factory
+from commands.execution import builder
 
 
 class AndroidAgent(BaseAgent):
@@ -39,13 +39,9 @@ class AndroidAgent(BaseAgent):
 
             "message",
 
-            "Executando comando..."
+            "Executando comando."
 
         )
-
-        # ==========================================
-        # CRIA PACOTE
-        # ==========================================
 
         package = factory.create(
 
@@ -56,10 +52,6 @@ class AndroidAgent(BaseAgent):
             message=message
 
         )
-
-        # ==========================================
-        # GERA EXECUÇÃO
-        # ==========================================
 
         execution = builder.build(
 

@@ -1,12 +1,12 @@
 """
 ====================================================
-Command Package
+L.I.Z.A Command Package
 ====================================================
 """
 
 from dataclasses import dataclass, field
 
-from core.commands.command import Command
+from commands.command import Command
 
 
 @dataclass
