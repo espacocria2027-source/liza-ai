@@ -6,18 +6,14 @@ Arquivo principal
 """
 
 # ====================================================
-# CARREGA .ENV (LOCAL)
+# CARREGA .ENV
 # ====================================================
 
 try:
     from dotenv import load_dotenv
-
     load_dotenv()
-
     print("✅ dotenv carregado.")
-
 except ModuleNotFoundError:
-
     print("⚠ python-dotenv não instalado.")
     print("⚠ Usando variáveis do ambiente.")
 
@@ -25,8 +21,11 @@ except ModuleNotFoundError:
 # IMPORTS
 # ====================================================
 
-from flask import Flask
-from flask import jsonify
+from flask import (
+    Flask,
+    jsonify,
+    send_from_directory
+)
 
 from flask_cors import CORS
 
@@ -52,9 +51,21 @@ from api.routes.image import image_bp
 from api.routes.android import android_bp
 
 
+# ====================================================
+# APP
+# ====================================================
+
 def create_app():
 
-    app = Flask(__name__)
+    app = Flask(
+
+        __name__,
+
+        static_folder="web",
+
+        static_url_path=""
+
+    )
 
     CORS(app)
 
@@ -69,30 +80,64 @@ def create_app():
     # ==========================================
 
     app.register_blueprint(auth_bp)
+
     app.register_blueprint(chat_bp)
+
     app.register_blueprint(command_bp)
+
     app.register_blueprint(voice_bp)
+
     app.register_blueprint(image_bp)
+
     app.register_blueprint(android_bp)
 
     # ==========================================
-    # HOME
+    # FRONT-END
     # ==========================================
 
     @app.route("/")
-    def home():
+    def index():
 
-        return jsonify({
+        return send_from_directory(
 
-            "name": "L.I.Z.A",
+            app.static_folder,
 
-            "version": "3.0",
+            "index.html"
 
-            "status": "online",
+        )
 
-            "developer": "Beto"
+    @app.route("/style.css")
+    def style():
 
-        })
+        return send_from_directory(
+
+            app.static_folder,
+
+            "style.css"
+
+        )
+
+    @app.route("/script.js")
+    def script():
+
+        return send_from_directory(
+
+            app.static_folder,
+
+            "script.js"
+
+        )
+
+    @app.route("/assets/<path:filename>")
+    def assets(filename):
+
+        return send_from_directory(
+
+            "web/assets",
+
+            filename
+
+        )
 
     # ==========================================
     # HEALTH
