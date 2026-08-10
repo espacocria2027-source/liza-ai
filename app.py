@@ -1,21 +1,24 @@
-"""
-====================================================
-L.I.Z.A Server
-Arquivo principal
-====================================================
-"""
+# ====================================================
+# L.I.Z.A. SERVER
+# ====================================================
 
 # ====================================================
 # CARREGA .ENV
 # ====================================================
 
 try:
+
     from dotenv import load_dotenv
+
     load_dotenv()
+
     print("✅ dotenv carregado.")
+
 except ModuleNotFoundError:
+
     print("⚠ python-dotenv não instalado.")
     print("⚠ Usando variáveis do ambiente.")
+
 
 # ====================================================
 # IMPORTS
@@ -31,6 +34,7 @@ from flask_cors import CORS
 
 from database import criar_tabela
 
+
 # ====================================================
 # REGISTROS
 # ====================================================
@@ -38,6 +42,7 @@ from database import criar_tabela
 import agents.registry
 import plugins.registry
 import listeners.logger
+
 
 # ====================================================
 # BLUEPRINTS
@@ -69,11 +74,13 @@ def create_app():
 
     CORS(app)
 
+
     # ==========================================
     # BANCO
     # ==========================================
 
     criar_tabela()
+
 
     # ==========================================
     # BLUEPRINTS
@@ -91,6 +98,7 @@ def create_app():
 
     app.register_blueprint(android_bp)
 
+
     # ==========================================
     # FRONT-END
     # ==========================================
@@ -106,6 +114,7 @@ def create_app():
 
         )
 
+
     @app.route("/style.css")
     def style():
 
@@ -116,6 +125,7 @@ def create_app():
             "style.css"
 
         )
+
 
     @app.route("/script.js")
     def script():
@@ -128,6 +138,7 @@ def create_app():
 
         )
 
+
     @app.route("/assets/<path:filename>")
     def assets(filename):
 
@@ -139,20 +150,22 @@ def create_app():
 
         )
 
+
     # ==========================================
     # HEALTH
     # ==========================================
 
-    @app.route("/health")
+    @app.get("/health")
     def health():
 
         return jsonify({
 
-            "success": True,
+            "server": "running",
 
-            "server": "running"
+            "success": True
 
-        })
+        }), 200
+
 
     # ==========================================
     # AGENTES
@@ -172,6 +185,7 @@ def create_app():
             )
 
         })
+
 
     return app
 

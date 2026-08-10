@@ -2,7 +2,6 @@ from pathlib import Path
 
 PROMPTS_DIR = Path("prompt")
 
-
 def carregar_prompt(nome):
 
     caminho = PROMPTS_DIR / nome
