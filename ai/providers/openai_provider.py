@@ -1,33 +1,33 @@
 """
-L.I.Z.A. Groq Provider
+L.I.Z.A. OpenAI Provider
 """
 
 import os
 
 from dotenv import load_dotenv
-from groq import Groq
+from openai import OpenAI
 
 from ai.providers.base_provider import BaseProvider
 from ai.models.model_manager import models
 
 
-class GroqProvider(BaseProvider):
+class OpenAIProvider(BaseProvider):
 
     def __init__(self):
 
         load_dotenv(override=True)
 
         api_key = os.getenv(
-            "GROQ_API_KEY"
+            "OPENAI_API_KEY"
         )
 
         if not api_key:
 
             raise RuntimeError(
-                "GROQ_API_KEY não encontrada."
+                "OPENAI_API_KEY não encontrada."
             )
 
-        self.client = Groq(
+        self.client = OpenAI(
             api_key=api_key
         )
 
@@ -44,7 +44,7 @@ class GroqProvider(BaseProvider):
     ) -> str:
 
         print("=" * 60)
-        print("Groq")
+        print("OpenAI")
         print("Modelo:", model)
         print("=" * 60)
 
@@ -80,7 +80,7 @@ class GroqProvider(BaseProvider):
     ):
 
         print("=" * 60)
-        print("Groq Streaming")
+        print("OpenAI Streaming")
         print("Modelo:", model)
         print("=" * 60)
 
@@ -124,7 +124,7 @@ class GroqProvider(BaseProvider):
 
         return self._generate(
 
-            models.groq_chat,
+            models.openai_chat,
 
             messages
 
@@ -137,7 +137,7 @@ class GroqProvider(BaseProvider):
 
         return self._generate_stream(
 
-            models.groq_chat,
+            models.openai_chat,
 
             messages
 
@@ -154,7 +154,7 @@ class GroqProvider(BaseProvider):
 
         return self._generate(
 
-            models.groq_vision,
+            models.openai_vision,
 
             messages
 
@@ -171,7 +171,7 @@ class GroqProvider(BaseProvider):
 
         return self._generate(
 
-            models.groq_fast,
+            models.openai_fast,
 
             messages,
 
@@ -190,7 +190,7 @@ class GroqProvider(BaseProvider):
 
         return self._generate(
 
-            models.groq_reasoning,
+            models.openai_reasoning,
 
             messages,
 
@@ -207,7 +207,7 @@ class GroqProvider(BaseProvider):
 
         return self._generate_stream(
 
-            models.groq_reasoning,
+            models.openai_reasoning,
 
             messages,
 

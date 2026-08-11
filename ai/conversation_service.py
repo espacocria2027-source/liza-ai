@@ -1,5 +1,3 @@
-
-
 import os
 
 from core.context_manager import context_manager
@@ -12,8 +10,40 @@ from ai.memory_service import salvar_memoria
 
 from ai.learning.learning_service import learning
 
+
 # ==========================================================
-# Conversa tradicional
+# CONFIGURAÇÃO DE CONTEXTO
+# ==========================================================
+
+# Quantas mensagens antigas podem ser enviadas para a IA.
+# Isso reduz bastante o consumo de tokens.
+MAX_HISTORY_MESSAGES = 10
+
+
+# ==========================================================
+# LIMITA O HISTÓRICO
+# ==========================================================
+
+def limitar_contexto(contexto: dict) -> dict:
+
+    history = contexto.get(
+        "history",
+        []
+    )
+
+    # Mantém somente as mensagens mais recentes.
+    history = history[
+        -MAX_HISTORY_MESSAGES:
+    ]
+
+    return {
+        **contexto,
+        "history": history
+    }
+
+
+# ==========================================================
+# CONVERSA TRADICIONAL
 # ==========================================================
 
 def conversar(
@@ -23,26 +53,59 @@ def conversar(
 
     print("=" * 60)
     print("Conversation Service")
-    print("ENV:", repr(os.getenv("GROQ_API_KEY")))
-    print("Provider:", provider)
+    print(
+        "Provider:",
+        provider.__class__.__name__
+    )
     print("=" * 60)
 
-    contexto = context_manager.build(usuario)
+    # ------------------------------------------------------
+    # CONTEXTO
+    # ------------------------------------------------------
+
+    contexto = context_manager.build(
+        usuario
+    )
+
+    contexto = limitar_contexto(
+        contexto
+    )
+
+    # ------------------------------------------------------
+    # PROMPT
+    # ------------------------------------------------------
 
     prompt = criar_prompt(
         contexto,
         mensagem
     )
 
+    print(
+        "Mensagens enviadas para a IA:",
+        len(prompt)
+    )
+
+    # ------------------------------------------------------
+    # IA
+    # ------------------------------------------------------
+
     resposta = provider.chat(
         prompt
     )
+
+    # ------------------------------------------------------
+    # MEMÓRIA
+    # ------------------------------------------------------
 
     salvar_memoria(
         usuario,
         mensagem,
         resposta
     )
+
+    # ------------------------------------------------------
+    # APRENDIZADO
+    # ------------------------------------------------------
 
     learning.learn(
         usuario,
@@ -53,7 +116,7 @@ def conversar(
 
 
 # ==========================================================
-# Conversa com Streaming
+# CONVERSA COM STREAMING
 # ==========================================================
 
 def conversar_stream(
@@ -64,32 +127,59 @@ def conversar_stream(
 
     print("=" * 60)
     print("Conversation Service (STREAM)")
+    print(
+        "Provider:",
+        provider.__class__.__name__
+    )
     print("=" * 60)
 
-    # Se o Android não enviar o prompt,
-    # monta normalmente no servidor.
+    # ------------------------------------------------------
+    # SE O ANDROID NÃO ENVIAR O PROMPT,
+    # MONTA NORMALMENTE NO SERVIDOR.
+    # ------------------------------------------------------
+
     if not prompt:
 
-        contexto = context_manager.build(usuario)
+        contexto = context_manager.build(
+            usuario
+        )
+
+        contexto = limitar_contexto(
+            contexto
+        )
 
         prompt = criar_prompt(
             contexto,
             mensagem
         )
 
+    # ------------------------------------------------------
+    # STREAMING
+    # ------------------------------------------------------
+
     resposta_completa = ""
 
-    for token in provider.chat_stream(prompt):
+    for token in provider.chat_stream(
+        prompt
+    ):
 
         resposta_completa += token
 
         yield token
+
+    # ------------------------------------------------------
+    # MEMÓRIA
+    # ------------------------------------------------------
 
     salvar_memoria(
         usuario,
         mensagem,
         resposta_completa
     )
+
+    # ------------------------------------------------------
+    # APRENDIZADO
+    # ------------------------------------------------------
 
     learning.learn(
         usuario,

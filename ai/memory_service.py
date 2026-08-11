@@ -1,6 +1,17 @@
 from database import conectar
 
 
+# ==========================================================
+# CONFIGURAÇÃO
+# ==========================================================
+
+MAX_MEMORY_MESSAGES = 6
+
+
+# ==========================================================
+# CARREGAR MEMÓRIA
+# ==========================================================
+
 def carregar_memoria(usuario):
 
     conn = conectar()
@@ -13,9 +24,12 @@ def carregar_memoria(usuario):
         FROM memoria
         WHERE usuario=?
         ORDER BY id DESC
-        LIMIT 10
+        LIMIT ?
         """,
-        (usuario,)
+        (
+            usuario,
+            MAX_MEMORY_MESSAGES
+        )
     )
 
     rows = cursor.fetchall()
@@ -39,7 +53,15 @@ def carregar_memoria(usuario):
     return historico
 
 
-def salvar_memoria(usuario, mensagem, resposta):
+# ==========================================================
+# SALVAR MEMÓRIA
+# ==========================================================
+
+def salvar_memoria(
+    usuario,
+    mensagem,
+    resposta
+):
 
     conn = conectar()
 
@@ -48,8 +70,8 @@ def salvar_memoria(usuario, mensagem, resposta):
     cursor.execute(
         """
         INSERT INTO memoria
-        (usuario,mensagem,resposta)
-        VALUES(?,?,?)
+        (usuario, mensagem, resposta)
+        VALUES (?, ?, ?)
         """,
         (
             usuario,
