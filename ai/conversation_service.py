@@ -12,37 +12,6 @@ from ai.learning.learning_service import learning
 
 
 # ==========================================================
-# CONFIGURAÇÃO DE CONTEXTO
-# ==========================================================
-
-# Quantas mensagens antigas podem ser enviadas para a IA.
-# Isso reduz bastante o consumo de tokens.
-MAX_HISTORY_MESSAGES = 10
-
-
-# ==========================================================
-# LIMITA O HISTÓRICO
-# ==========================================================
-
-def limitar_contexto(contexto: dict) -> dict:
-
-    history = contexto.get(
-        "history",
-        []
-    )
-
-    # Mantém somente as mensagens mais recentes.
-    history = history[
-        -MAX_HISTORY_MESSAGES:
-    ]
-
-    return {
-        **contexto,
-        "history": history
-    }
-
-
-# ==========================================================
 # CONVERSA TRADICIONAL
 # ==========================================================
 
@@ -53,10 +22,8 @@ def conversar(
 
     print("=" * 60)
     print("Conversation Service")
-    print(
-        "Provider:",
-        provider.__class__.__name__
-    )
+    print("ENV:", repr(os.getenv("GROQ_API_KEY")))
+    print("Provider:", provider)
     print("=" * 60)
 
     # ------------------------------------------------------
@@ -65,10 +32,6 @@ def conversar(
 
     contexto = context_manager.build(
         usuario
-    )
-
-    contexto = limitar_contexto(
-        contexto
     )
 
     # ------------------------------------------------------
@@ -80,18 +43,31 @@ def conversar(
         mensagem
     )
 
-    print(
-        "Mensagens enviadas para a IA:",
-        len(prompt)
-    )
-
     # ------------------------------------------------------
-    # IA
+    # PROVIDER
     # ------------------------------------------------------
 
     resposta = provider.chat(
         prompt
     )
+
+    # ======================================================
+    # DEBUG DA RESPOSTA
+    # ======================================================
+
+    print("=" * 60)
+    print("RESPOSTA RECEBIDA DO PROVIDER")
+    print("=" * 60)
+
+    print("repr:")
+    print(repr(resposta))
+
+    print("=" * 60)
+
+    print("texto:")
+    print(resposta)
+
+    print("=" * 60)
 
     # ------------------------------------------------------
     # MEMÓRIA
@@ -112,6 +88,10 @@ def conversar(
         mensagem
     )
 
+    # ------------------------------------------------------
+    # RETORNO
+    # ------------------------------------------------------
+
     return resposta
 
 
@@ -127,15 +107,10 @@ def conversar_stream(
 
     print("=" * 60)
     print("Conversation Service (STREAM)")
-    print(
-        "Provider:",
-        provider.__class__.__name__
-    )
     print("=" * 60)
 
     # ------------------------------------------------------
-    # SE O ANDROID NÃO ENVIAR O PROMPT,
-    # MONTA NORMALMENTE NO SERVIDOR.
+    # SE O ANDROID NÃO ENVIOU O PROMPT
     # ------------------------------------------------------
 
     if not prompt:
@@ -144,28 +119,52 @@ def conversar_stream(
             usuario
         )
 
-        contexto = limitar_contexto(
-            contexto
-        )
-
         prompt = criar_prompt(
             contexto,
             mensagem
         )
 
     # ------------------------------------------------------
-    # STREAMING
+    # RESPOSTA COMPLETA
     # ------------------------------------------------------
 
     resposta_completa = ""
+
+    # ------------------------------------------------------
+    # STREAM
+    # ------------------------------------------------------
 
     for token in provider.chat_stream(
         prompt
     ):
 
+        # Garantimos que o token seja string
+        if token is None:
+            continue
+
+        token = str(token)
+
         resposta_completa += token
 
         yield token
+
+    # ======================================================
+    # DEBUG DO STREAM
+    # ======================================================
+
+    print("=" * 60)
+    print("RESPOSTA COMPLETA DO STREAM")
+    print("=" * 60)
+
+    print("repr:")
+    print(repr(resposta_completa))
+
+    print("=" * 60)
+
+    print("texto:")
+    print(resposta_completa)
+
+    print("=" * 60)
 
     # ------------------------------------------------------
     # MEMÓRIA
