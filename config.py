@@ -24,6 +24,11 @@ GEMINI_API_KEY = os.getenv(
     ""
 )
 
+MISTRAL_API_KEY = os.getenv(
+    "MISTRAL_API_KEY",
+    ""
+)
+
 
 # ====================================================
 # PROVIDER
@@ -31,16 +36,19 @@ GEMINI_API_KEY = os.getenv(
 
 # auto = tenta os providers disponíveis
 # groq = somente Groq
+# mistral = somente Mistral
 # openai = somente OpenAI
 # gemini = somente Gemini
 
 AI_PROVIDER = "auto"
+
+
 # ====================================================
 # MODELOS — GROQ
 # ====================================================
 
 MODEL_GROQ_CHAT = (
-    "llama-3.3-70b-versatile"
+    "openai/gpt-oss-120b"
 )
 
 MODEL_GROQ_FAST = (
@@ -197,8 +205,8 @@ ALLOW_DANGEROUS_COMMANDS = False
 # PERSONALIDADE
 # ====================================================
 
-AI_NAME = "L.I.Z.A."
+AI_NAME = "LIZA"
 
-DEVELOPER = "Beto"
+DEVELOPER = "BETO"
 
-VERSION = "3.0"
+VERSION = "7.5"

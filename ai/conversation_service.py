@@ -22,9 +22,27 @@ def conversar(
 
     print("=" * 60)
     print("Conversation Service")
-    print("ENV:", repr(os.getenv("GROQ_API_KEY")))
-    print("Provider:", provider)
+
+    # ======================================================
+    # SEGURANÇA
+    # ======================================================
+
+    print(
+        "GROQ_API_KEY configurada:",
+        bool(
+            os.getenv(
+                "GROQ_API_KEY"
+            )
+        )
+    )
+
+    print(
+        "Provider:",
+        provider
+    )
+
     print("=" * 60)
+
 
     # ------------------------------------------------------
     # CONTEXTO
@@ -33,6 +51,7 @@ def conversar(
     contexto = context_manager.build(
         usuario
     )
+
 
     # ------------------------------------------------------
     # PROMPT
@@ -43,6 +62,7 @@ def conversar(
         mensagem
     )
 
+
     # ------------------------------------------------------
     # PROVIDER
     # ------------------------------------------------------
@@ -50,6 +70,7 @@ def conversar(
     resposta = provider.chat(
         prompt
     )
+
 
     # ======================================================
     # DEBUG DA RESPOSTA
@@ -60,14 +81,21 @@ def conversar(
     print("=" * 60)
 
     print("repr:")
-    print(repr(resposta))
+    print(
+        repr(
+            resposta
+        )
+    )
 
     print("=" * 60)
 
     print("texto:")
-    print(resposta)
+    print(
+        resposta
+    )
 
     print("=" * 60)
+
 
     # ------------------------------------------------------
     # MEMÓRIA
@@ -79,6 +107,7 @@ def conversar(
         resposta
     )
 
+
     # ------------------------------------------------------
     # APRENDIZADO
     # ------------------------------------------------------
@@ -87,6 +116,7 @@ def conversar(
         usuario,
         mensagem
     )
+
 
     # ------------------------------------------------------
     # RETORNO
@@ -109,6 +139,7 @@ def conversar_stream(
     print("Conversation Service (STREAM)")
     print("=" * 60)
 
+
     # ------------------------------------------------------
     # SE O ANDROID NÃO ENVIOU O PROMPT
     # ------------------------------------------------------
@@ -124,11 +155,13 @@ def conversar_stream(
             mensagem
         )
 
+
     # ------------------------------------------------------
     # RESPOSTA COMPLETA
     # ------------------------------------------------------
 
     resposta_completa = ""
+
 
     # ------------------------------------------------------
     # STREAM
@@ -142,11 +175,17 @@ def conversar_stream(
         if token is None:
             continue
 
-        token = str(token)
+
+        token = str(
+            token
+        )
+
 
         resposta_completa += token
 
+
         yield token
+
 
     # ======================================================
     # DEBUG DO STREAM
@@ -157,14 +196,23 @@ def conversar_stream(
     print("=" * 60)
 
     print("repr:")
-    print(repr(resposta_completa))
+
+    print(
+        repr(
+            resposta_completa
+        )
+    )
 
     print("=" * 60)
 
     print("texto:")
-    print(resposta_completa)
+
+    print(
+        resposta_completa
+    )
 
     print("=" * 60)
+
 
     # ------------------------------------------------------
     # MEMÓRIA
@@ -175,6 +223,7 @@ def conversar_stream(
         mensagem,
         resposta_completa
     )
+
 
     # ------------------------------------------------------
     # APRENDIZADO

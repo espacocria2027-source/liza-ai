@@ -6,7 +6,7 @@ groq==1.4.0
 openai
 google-genai
 python-dotenv==1.2.2
-
+mistralai
 requests==2.34.2
 httpx==0.28.1
 
