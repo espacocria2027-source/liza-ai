@@ -2,6 +2,7 @@
 # L.I.Z.A. SERVER
 # ====================================================
 
+
 # ====================================================
 # CARREGA .ENV
 # ====================================================
@@ -54,6 +55,7 @@ from api.routes.command import command_bp
 from api.routes.voice import voice_bp
 from api.routes.image import image_bp
 from api.routes.android import android_bp
+from services.research.research import research_bp
 
 
 # ====================================================
@@ -86,17 +88,33 @@ def create_app():
     # BLUEPRINTS
     # ==========================================
 
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(
+        auth_bp
+    )
 
-    app.register_blueprint(chat_bp)
+    app.register_blueprint(
+        chat_bp
+    )
 
-    app.register_blueprint(command_bp)
+    app.register_blueprint(
+        command_bp
+    )
 
-    app.register_blueprint(voice_bp)
+    app.register_blueprint(
+        voice_bp
+    )
 
-    app.register_blueprint(image_bp)
+    app.register_blueprint(
+        image_bp
+    )
 
-    app.register_blueprint(android_bp)
+    app.register_blueprint(
+        android_bp
+    )
+
+    app.register_blueprint(
+        research_bp
+    )
 
 
     # ==========================================
