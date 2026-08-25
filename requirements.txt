@@ -9,7 +9,7 @@ python-dotenv==1.2.2
 mistralai
 requests==2.34.2
 httpx==0.28.1
-
+tavily-python
 pydantic==2.13.4
 typing_extensions==4.15.0
 
