@@ -48,7 +48,8 @@ class AnswerSynthesizer:
         self,
         query: str,
         sources: list[SearchResult],
-        evidence: EvidenceAnalysis
+        evidence: EvidenceAnalysis,
+        response_length: str = "medium"
     ) -> str:
 
         if not sources:
@@ -57,6 +58,19 @@ class AnswerSynthesizer:
                 "Não encontrei fontes suficientes "
                 "para responder com segurança."
             )
+
+
+        # =============================================
+        # NORMALIZAR TAMANHO
+        # =============================================
+
+        if response_length not in {
+            "short",
+            "medium",
+            "long"
+        }:
+
+            response_length = "medium"
 
 
         # =============================================
@@ -80,12 +94,55 @@ class AnswerSynthesizer:
 
 
         # =============================================
-        # ESTRATÉGIA DA RESPOSTA
+        # ESTRATÉGIA
         # =============================================
 
         strategy = (
             self._determine_strategy(
                 evidence
+            )
+        )
+
+
+        # =============================================
+        # POLÍTICA DE TAMANHO
+        # =============================================
+
+        length_instruction = (
+            self._build_length_instruction(
+                response_length
+            )
+        )
+
+
+        # =============================================
+        # POLÍTICA DE ORGANIZAÇÃO
+        # =============================================
+
+        organization_instruction = (
+            self._build_organization_instruction(
+                response_length,
+                query
+            )
+        )
+
+
+        # =============================================
+        # POLÍTICA DE IDIOMA
+        # =============================================
+
+        language_instruction = (
+            self._build_language_instruction()
+        )
+
+
+        # =============================================
+        # LIMITE DE TOKENS
+        # =============================================
+
+        max_tokens = (
+            self._max_tokens(
+                response_length
             )
         )
 
@@ -97,83 +154,185 @@ class AnswerSynthesizer:
         system_prompt = """
 Você é o mecanismo de síntese da L.I.Z.A.
 
-Sua função é produzir respostas confiáveis
-a partir de pesquisas na Web.
+Sua função é transformar informações pesquisadas
+em uma resposta clara, natural e útil para o usuário.
+
+Você NÃO é um gerador de relatório de pesquisa.
 
 Você recebe:
 
 - a pergunta do usuário;
 - fontes pesquisadas;
-- uma análise de evidências;
-- uma confiança estimada;
-- possíveis conflitos entre fontes.
+- análise de evidências;
+- confiança estimada;
+- possíveis conflitos;
+- política de tamanho;
+- política de organização;
+- política de idioma.
 
-Você DEVE respeitar a análise de evidências.
+Sua resposta final será exibida diretamente no
+chat da L.I.Z.A.
 
-REGRAS:
+====================================================
+REGRAS FACTUAIS
+====================================================
 
 1. Use as fontes fornecidas como base factual.
 
 2. Não invente informações.
 
 3. Não invente números, datas, versões,
-   nomes ou acontecimentos.
+nomes ou acontecimentos.
 
 4. Não trate todas as fontes como igualmente
-   confiáveis.
+confiáveis.
 
-5. Considere autoridade, relevância e
-   atualidade.
+5. Considere autoridade, relevância e atualidade.
 
-6. Se existir conflito, não esconda o conflito.
+6. Se existir conflito relevante, não esconda.
 
-7. Se existir conflito de versão, data ou
-   valor numérico, compare explicitamente
-   as informações.
+7. Se existir conflito de versão, data ou valor,
+considere a evidência mais forte.
 
-8. Uma fonte secundária nunca deve ser
-   apresentada como fonte oficial.
+8. Uma fonte secundária nunca deve ser apresentada
+como fonte oficial.
 
-9. Não invente URLs.
+9. Nunca invente URLs.
 
-10. Use português do Brasil.
+10. Não transforme uma inferência em fato.
 
-11. Seja natural e direto.
+11. Diferencie fato, interpretação e incerteza.
 
-12. Use referências [1], [2], [3] etc.
+12. Se as evidências não forem suficientes,
+deixe isso claro.
 
-13. Cada referência deve corresponder
-    exatamente ao índice da fonte fornecida.
+====================================================
+REGRAS DE APRESENTAÇÃO
+====================================================
 
-14. Se a confiança for baixa, deixe claro
-    que a informação não pode ser confirmada
-    com alta segurança.
+13. A resposta deve parecer uma conversa natural
+com um assistente inteligente.
 
-15. Se a confiança for alta e as fontes forem
-    consistentes, responda de forma direta.
+14. Informação principal primeiro.
 
-16. Se houver conflito, não escolha uma fonte
-    simplesmente porque apareceu primeiro.
+15. Não comece com frases como:
 
-17. Quando houver uma fonte claramente mais
-    apropriada para a pergunta, explique por
-    que ela recebeu maior peso.
+"Após analisar as fontes..."
 
-18. Não transforme uma inferência em fato.
+"Com base na pesquisa realizada..."
 
-19. Diferencie claramente:
-    - fato encontrado nas fontes;
-    - interpretação;
-    - incerteza.
+"Segundo as fontes encontradas..."
 
-20. Nunca diga que uma informação é definitiva
-    quando as evidências fornecidas não permitem
-    essa conclusão.
+a menos que isso seja realmente necessário.
+
+16. NÃO transforme a resposta em relatório.
+
+17. NÃO reproduza tabelas das fontes.
+
+18. NÃO liste todas as fontes dentro da resposta.
+
+19. NÃO mostre score do provedor.
+
+20. NÃO mostre confiança numérica.
+
+21. NÃO mostre "evidenceReason".
+
+22. NÃO mostre o processo interno de análise.
+
+23. NÃO mostre "FONTE 1", "FONTE 2" etc.
+
+24. NÃO copie títulos de relatórios encontrados
+nas fontes.
+
+25. NÃO use referências [1], [2], [3] etc.
+como padrão.
+
+26. As fontes estarão disponíveis separadamente
+na interface da L.I.Z.A.
+
+27. Só mencione uma fonte no texto quando isso
+for realmente útil para explicar a informação.
+
+====================================================
+IDIOMA
+====================================================
+
+28. Responda em português do Brasil.
+
+29. Use linguagem natural.
+
+30. Não traduza nomes próprios.
+
+31. Não traduza tecnologias ou termos técnicos
+que normalmente são usados em inglês.
+
+Exemplos:
+
+Kotlin
+Android
+Firebase
+GitHub
+API
+backend
+frontend
+framework
+software
+fine-tuning
+
+32. Quando um termo técnico em inglês for pouco
+conhecido e a tradução ajudar, apresente os dois
+na primeira ocorrência.
+
+Exemplo:
+
+fine-tuning (ajuste fino)
+
+Depois disso, pode usar apenas:
+
+fine-tuning
+
+33. Não misture português e inglês sem necessidade.
+
+====================================================
+ORGANIZAÇÃO
+====================================================
+
+34. Organize a informação de acordo com a pergunta.
+
+35. Não use títulos apenas para preencher espaço.
+
+36. Não use listas quando uma frase ou parágrafo
+for mais claro.
+
+37. Use listas quando houver vários itens distintos.
+
+38. Use títulos apenas quando houver blocos claros
+de informação.
+
+39. Use Markdown somente quando melhorar a leitura.
+
+40. Evite excesso de negrito.
+
+41. Evite excesso de emojis.
+
+42. Não transforme uma resposta simples em uma
+resposta visualmente complexa.
+
+====================================================
+OBJETIVO
+====================================================
+
+A resposta deve transmitir a informação mais útil
+com a menor complexidade necessária.
+
+Não é objetivo mostrar quanto trabalho foi feito.
+
+É objetivo responder bem.
 """
 
 
         # =============================================
-        # PROMPT DA PERGUNTA
+        # PROMPT DO USUÁRIO
         # =============================================
 
         user_prompt = f"""
@@ -182,31 +341,69 @@ PERGUNTA DO USUÁRIO:
 {query}
 
 
-ESTRATÉGIA OBRIGATÓRIA:
+====================================================
+TAMANHO DA RESPOSTA
+====================================================
+
+{length_instruction}
+
+
+====================================================
+ORGANIZAÇÃO
+====================================================
+
+{organization_instruction}
+
+
+====================================================
+IDIOMA
+====================================================
+
+{language_instruction}
+
+
+====================================================
+ESTRATÉGIA DE EVIDÊNCIAS
+====================================================
 
 {strategy}
 
 
-ANÁLISE DAS EVIDÊNCIAS:
+====================================================
+ANÁLISE DAS EVIDÊNCIAS
+====================================================
 
 {evidence_context}
 
 
-FONTES:
+====================================================
+FONTES DISPONÍVEIS
+====================================================
 
 {context}
 
 
-TAREFA:
+====================================================
+TAREFA
+====================================================
 
-Responda à pergunta usando as fontes e a
-análise de evidências.
+Responda diretamente à pergunta do usuário.
 
-A resposta deve refletir a confiança e o
-tipo de conflito detectado.
+Use as fontes e as evidências para garantir
+precisão.
 
-Use [1], [2], [3] etc. para indicar as fontes
-quando apropriado.
+Não mostre o processo interno da pesquisa.
+
+Não transforme a resposta em um relatório.
+
+Não copie tabelas das fontes.
+
+Não liste todas as fontes.
+
+As fontes completas serão exibidas separadamente
+na interface da L.I.Z.A.
+
+A política de tamanho e organização é obrigatória.
 """
 
 
@@ -220,7 +417,7 @@ quando apropriado.
 
             temperature=0.1,
 
-            max_tokens=1400,
+            max_tokens=max_tokens,
 
             messages=[
 
@@ -269,7 +466,219 @@ quando apropriado.
 
 
     # =================================================
-    # ESTRATÉGIA
+    # TAMANHO
+    # =================================================
+
+    @staticmethod
+    def _build_length_instruction(
+        response_length: str
+    ) -> str:
+
+        if response_length == "short":
+
+            return """
+SHORT — RESPOSTA CURTA
+
+Se a pergunta puder ser respondida diretamente,
+responda em 1 a 3 frases.
+
+Priorize:
+
+- resposta principal;
+- informação essencial;
+- precisão.
+
+Evite:
+
+- introduções;
+- conclusões repetitivas;
+- listas;
+- tabelas;
+- contexto desnecessário;
+- explicação da pesquisa.
+
+Se uma frase resolver a pergunta,
+use apenas uma frase.
+"""
+
+
+        if response_length == "long":
+
+            return """
+LONG — RESPOSTA DETALHADA
+
+Desenvolva a resposta quando a pergunta exigir
+profundidade.
+
+Pode usar:
+
+- seções;
+- listas;
+- exemplos;
+- comparações;
+- contexto;
+- explicações passo a passo.
+
+Organize progressivamente:
+
+1. resposta principal;
+2. explicação;
+3. detalhes relevantes;
+4. exemplos ou observações quando úteis.
+
+Não repita informações.
+Não transforme a resposta em relatório.
+"""
+
+
+        return """
+MEDIUM — RESPOSTA NORMAL
+
+Dê uma explicação equilibrada.
+
+Use:
+
+- parágrafos curtos;
+- listas quando ajudarem;
+- exemplos quando necessários;
+- contexto suficiente.
+
+Não seja excessivamente breve.
+
+Também não transforme a resposta em um
+texto enorme.
+"""
+
+
+    # =================================================
+    # ORGANIZAÇÃO
+    # =================================================
+
+    @staticmethod
+    def _build_organization_instruction(
+        response_length: str,
+        query: str
+    ) -> str:
+
+        if response_length == "short":
+
+            return """
+Organização mínima.
+
+Coloque a resposta diretamente no início.
+
+Não crie seções.
+
+Não use tabela.
+
+Não use lista salvo se houver necessidade real.
+"""
+
+
+        if response_length == "long":
+
+            return """
+Organização estruturada.
+
+Comece com um resumo ou resposta principal.
+
+Depois desenvolva os detalhes.
+
+Use títulos somente quando houver mudança real
+de assunto.
+
+Use listas para conjuntos de informações.
+
+Use exemplos quando eles aumentarem a compreensão.
+
+A estrutura deve ajudar o usuário a navegar pela
+informação, não apenas deixar o texto maior.
+"""
+
+
+        return """
+Organização equilibrada.
+
+Comece respondendo diretamente.
+
+Use parágrafos curtos.
+
+Se houver dois ou mais grupos claramente
+diferentes de informação, considere utilizar
+títulos ou listas.
+
+Não crie uma estrutura artificial.
+"""
+
+
+    # =================================================
+    # IDIOMA
+    # =================================================
+
+    @staticmethod
+    def _build_language_instruction() -> str:
+
+        return """
+Idioma principal: português do Brasil.
+
+Escreva de maneira natural para um usuário
+brasileiro.
+
+Preserve nomes próprios e nomes de tecnologias.
+
+Mantenha em inglês termos que são normalmente
+utilizados assim na área de tecnologia.
+
+Exemplos:
+
+Kotlin
+Android
+Firebase
+GitHub
+API
+backend
+frontend
+framework
+software
+fine-tuning
+
+Quando necessário, explique um termo técnico
+com sua tradução na primeira ocorrência.
+
+Exemplo:
+
+fine-tuning (ajuste fino)
+
+Não traduza literalmente termos técnicos quando
+isso produzir uma expressão estranha ou pouco
+utilizada em português.
+"""
+
+
+    # =================================================
+    # LIMITE DE TOKENS
+    # =================================================
+
+    @staticmethod
+    def _max_tokens(
+        response_length: str
+    ) -> int:
+
+        if response_length == "short":
+
+            return 350
+
+
+        if response_length == "long":
+
+            return 1400
+
+
+        return 700
+
+
+    # =================================================
+    # ESTRATÉGIA DE EVIDÊNCIAS
     # =================================================
 
     @staticmethod
@@ -303,16 +712,20 @@ quando apropriado.
             return """
 Existe conflito entre versões.
 
-A resposta deve:
+Determine qual versão é mais bem sustentada
+pelas evidências.
 
-1. identificar as versões encontradas;
-2. informar quais fontes apresentam cada versão;
-3. considerar a autoridade das fontes;
-4. considerar a atualidade das informações;
-5. evitar afirmar que uma versão é a mais
-   recente sem evidência suficiente;
-6. apresentar claramente a versão escolhida
-   e o motivo da escolha.
+Considere:
+
+- autoridade;
+- atualidade;
+- relevância.
+
+Se uma versão puder ser determinada,
+responda diretamente.
+
+Só mencione o conflito se ele for relevante
+para o usuário.
 """
 
 
@@ -329,14 +742,10 @@ A resposta deve:
             return """
 Existe conflito entre datas.
 
-A resposta deve:
+Determine a data mais bem sustentada.
 
-1. apresentar as datas relevantes;
-2. relacionar cada data à sua fonte;
-3. considerar a data mais recente quando
-   a pergunta exigir atualidade;
-4. explicar qualquer diferença de contexto;
-5. não escolher uma data arbitrariamente.
+Só explique a divergência se ela afetar
+a resposta.
 """
 
 
@@ -351,22 +760,19 @@ A resposta deve:
         ):
 
             return """
-Existe conflito entre valores numéricos.
+Existem valores numéricos diferentes.
 
-A resposta deve:
+Não faça uma média artificial.
 
-1. apresentar os valores encontrados;
-2. indicar suas respectivas fontes;
-3. verificar se os valores podem representar
-   contextos diferentes;
-4. não calcular ou inventar uma média;
-5. explicar qual valor possui melhor evidência,
-   se isso puder ser determinado.
+Determine o valor mais bem sustentado,
+quando possível.
+
+Explique a diferença apenas se for relevante.
 """
 
 
         # =============================================
-        # QUALQUER OUTRO CONFLITO
+        # OUTRO CONFLITO
         # =============================================
 
         if conflict:
@@ -374,15 +780,10 @@ A resposta deve:
             return """
 Existem informações potencialmente conflitantes.
 
-Compare as fontes explicitamente.
+Considere a evidência mais forte.
 
-Não esconda a divergência.
-
-Dê preferência à evidência mais forte,
-mas explique a razão dessa preferência.
-
-Se não for possível resolver o conflito,
-declare a incerteza.
+Mencione a divergência somente se ela alterar
+a resposta.
 """
 
 
@@ -395,10 +796,8 @@ declare a incerteza.
             return """
 A confiança estimada é alta.
 
-As fontes não apresentam conflito relevante.
-
-Responda diretamente, usando as melhores
-fontes como base e citando-as quando necessário.
+Responda diretamente usando as melhores
+evidências disponíveis.
 """
 
 
@@ -411,11 +810,10 @@ fontes como base e citando-as quando necessário.
             return """
 A confiança estimada é moderada.
 
-Responda normalmente, mas evite afirmações
-excessivamente definitivas.
+Responda normalmente.
 
-Quando relevante, indique que a informação
-foi encontrada nas fontes pesquisadas.
+Evite afirmações absolutamente definitivas
+quando houver incerteza relevante.
 """
 
 
@@ -426,12 +824,10 @@ foi encontrada nas fontes pesquisadas.
         return """
 A confiança estimada é baixa.
 
-Seja especialmente cauteloso.
+Seja cauteloso.
 
-Não apresente a informação como definitiva.
-
-Explique que as fontes disponíveis não são
-suficientes para confirmar a resposta com
+Informe brevemente que as fontes disponíveis
+não permitem confirmar a informação com
 alta segurança.
 """
 
@@ -456,7 +852,7 @@ alta segurança.
             blocks.append(
 
                 f"""
-[ FONTE {index} ]
+[FONTE {index}]
 
 Título:
 {source.title}
@@ -466,6 +862,9 @@ Domínio:
 
 URL:
 {source.url}
+
+Data de publicação:
+{source.published_at}
 
 Score do provedor:
 {source.provider_score}
@@ -509,15 +908,11 @@ Conteúdo:
 
         if evidence.has_conflict:
 
-            conflict_status = (
-                "SIM"
-            )
+            conflict_status = "SIM"
 
         else:
 
-            conflict_status = (
-                "NÃO"
-            )
+            conflict_status = "NÃO"
 
 
         conflict_type = (
