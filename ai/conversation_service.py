@@ -50,13 +50,11 @@ def conversar(
     # ======================================================
     # PROMPT
     # ======================================================
-    #
-    # Se o Android enviou um prompt completo,
-    # usamos exatamente esse prompt.
-    #
-    # Se não enviou, criamos um prompt localmente
-    # usando o sistema antigo.
-    # ======================================================
+
+    # ------------------------------------------------------
+    # Se nenhum prompt foi enviado pelo Android,
+    # usamos o sistema antigo como fallback.
+    # ------------------------------------------------------
 
     if not prompt:
 
@@ -68,6 +66,101 @@ def conversar(
             contexto,
             mensagem
         )
+
+
+    # ======================================================
+    # NORMALIZAR PROMPT
+    # ======================================================
+    #
+    # O Android pode enviar o contexto como uma STRING.
+    #
+    # Os providers, porém, esperam uma LISTA de mensagens.
+    #
+    # Transformamos:
+    #
+    #     "contexto completo..."
+    #
+    # em:
+    #
+    #     [
+    #         {
+    #             "role": "system",
+    #             "content": "contexto completo..."
+    #         },
+    #         {
+    #             "role": "user",
+    #             "content": "mensagem"
+    #         }
+    #     ]
+    #
+    # ------------------------------------------------------
+
+    if isinstance(
+        prompt,
+        str
+    ):
+
+        prompt = [
+
+            {
+
+                "role":
+                    "system",
+
+                "content":
+                    prompt
+
+            },
+
+            {
+
+                "role":
+                    "user",
+
+                "content":
+                    mensagem
+
+            }
+
+        ]
+
+
+    # ======================================================
+    # VALIDAR PROMPT
+    # ======================================================
+
+    if not isinstance(
+        prompt,
+        list
+    ):
+
+        print(
+            "⚠ Prompt inválido."
+        )
+
+        prompt = [
+
+            {
+
+                "role":
+                    "system",
+
+                "content":
+                    str(prompt)
+
+            },
+
+            {
+
+                "role":
+                    "user",
+
+                "content":
+                    mensagem
+
+            }
+
+        ]
 
 
     # ======================================================
@@ -83,111 +176,89 @@ def conversar(
         type(prompt)
     )
 
+    print(
+        "Quantidade de mensagens:",
+        len(prompt)
+    )
+
 
     # ======================================================
-    # VERIFICAR ESTRUTURA
+    # DEBUG DAS MENSAGENS
     # ======================================================
 
-    if isinstance(
-        prompt,
-        list
+    for index, item in enumerate(
+        prompt
     ):
 
         print(
-            "Quantidade de mensagens:",
-            len(prompt)
+            f"Mensagem #{index}:"
         )
 
 
-        for index, item in enumerate(
-            prompt
+        if isinstance(
+            item,
+            dict
         ):
 
             print(
-                f"Mensagem #{index}:"
+                "role:",
+                item.get(
+                    "role"
+                )
             )
 
 
-            if isinstance(
-                item,
-                dict
-            ):
+            content = item.get(
+                "content",
+                ""
+            )
+
+
+            print(
+                "tamanho:",
+                len(
+                    str(
+                        content
+                    )
+                )
+            )
+
+
+            # ----------------------------------------------
+            # DETECTAR CONHECIMENTO DAS PERSONAS
+            # ----------------------------------------------
+
+            content_text = str(
+                content
+            ).lower()
+
+
+            if "cibely" in content_text:
 
                 print(
-                    "role:",
-                    item.get(
-                        "role"
-                    )
+                    "✅ CONTEXTO DE CIBELY ENCONTRADO"
                 )
 
 
-                content = item.get(
-                    "content",
-                    ""
-                )
-
+            if "beto" in content_text:
 
                 print(
-                    "tamanho:",
-                    len(
-                        str(
-                            content
-                        )
-                    )
+                    "✅ CONTEXTO DE BETO ENCONTRADO"
                 )
 
 
-                # ------------------------------------------
-                # IDENTIFICAR CONTEXTO DA PERSONA
-                # ------------------------------------------
-
-                content_text = str(
-                    content
-                ).lower()
-
-
-                if (
-                    "cibely" in
-                    content_text
-                ):
-
-                    print(
-                        "✅ CONTEXTO DE CIBELY ENCONTRADO"
-                    )
-
-
-                if (
-                    "beto" in
-                    content_text
-                ):
-
-                    print(
-                        "✅ CONTEXTO DE BETO ENCONTRADO"
-                    )
-
-
-                if (
-                    "rony" in
-                    content_text
-                ):
-
-                    print(
-                        "✅ CONTEXTO DE RONY ENCONTRADO"
-                    )
-
-
-            else:
+            if "rony" in content_text:
 
                 print(
-                    "⚠ Item do prompt não é um objeto."
+                    "✅ CONTEXTO DE RONY ENCONTRADO"
                 )
 
 
-    else:
+        else:
 
-        print(
-            "⚠ Prompt recebido não é uma lista."
-        )
+            print(
+                "⚠ Mensagem não é um objeto válido."
+            )
 
 
     print("=" * 60)
@@ -223,6 +294,7 @@ def conversar(
 
 
     print("=" * 60)
+
 
     print(
         "texto:"
@@ -280,7 +352,7 @@ def conversar_stream(
 
 
     # ======================================================
-    # SE O ANDROID NÃO ENVIOU O PROMPT
+    # FALLBACK
     # ======================================================
 
     if not prompt:
@@ -296,7 +368,75 @@ def conversar_stream(
 
 
     # ======================================================
-    # DEBUG DO PROMPT
+    # NORMALIZAR PROMPT
+    # ======================================================
+
+    if isinstance(
+        prompt,
+        str
+    ):
+
+        prompt = [
+
+            {
+
+                "role":
+                    "system",
+
+                "content":
+                    prompt
+
+            },
+
+            {
+
+                "role":
+                    "user",
+
+                "content":
+                    mensagem
+
+            }
+
+        ]
+
+
+    # ======================================================
+    # VALIDAR PROMPT
+    # ======================================================
+
+    if not isinstance(
+        prompt,
+        list
+    ):
+
+        prompt = [
+
+            {
+
+                "role":
+                    "system",
+
+                "content":
+                    str(prompt)
+
+            },
+
+            {
+
+                "role":
+                    "user",
+
+                "content":
+                    mensagem
+
+            }
+
+        ]
+
+
+    # ======================================================
+    # DEBUG
     # ======================================================
 
     print("=" * 60)
@@ -308,19 +448,10 @@ def conversar_stream(
         type(prompt)
     )
 
-
-    if isinstance(
-        prompt,
-        list
-    ):
-
-        print(
-            "Quantidade de mensagens:",
-            len(prompt)
-        )
-
-
-    print("=" * 60)
+    print(
+        "Quantidade de mensagens:",
+        len(prompt)
+    )
 
 
     # ======================================================
@@ -338,9 +469,9 @@ def conversar_stream(
         prompt
     ):
 
-        # -----------------------------------------------
-        # GARANTIR QUE O TOKEN SEJA STRING
-        # -----------------------------------------------
+        # --------------------------------------------------
+        # GARANTIR STRING
+        # --------------------------------------------------
 
         if token is None:
 
