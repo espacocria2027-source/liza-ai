@@ -458,9 +458,6 @@ class DecisionEngine:
 
         # =================================================
         # PESQUISA MANUAL
-        #
-        # Se o usuário pediu explicitamente,
-        # NÃO importa se o assunto é simples.
         # =================================================
 
         if self._user_requested_research(
@@ -784,7 +781,8 @@ class DecisionEngine:
     def process(
         self,
         usuario,
-        mensagem
+        mensagem,
+        prompt=""
     ):
 
         # ================================================
@@ -897,6 +895,18 @@ class DecisionEngine:
                 "response_length"
             ]
         )
+
+        print(
+            "Prompt recebido:",
+            bool(prompt)
+        )
+
+        if prompt:
+
+            print(
+                "Tamanho do prompt:",
+                len(prompt)
+            )
 
         print(
             "=============================================="
@@ -1104,7 +1114,9 @@ class DecisionEngine:
 
                     usuario,
 
-                    mensagem
+                    mensagem,
+
+                    prompt
 
                 )
 
@@ -1136,7 +1148,9 @@ class DecisionEngine:
 
             usuario,
 
-            mensagem
+            mensagem,
+
+            prompt
 
         )
 
