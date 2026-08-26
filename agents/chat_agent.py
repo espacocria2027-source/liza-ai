@@ -9,17 +9,35 @@ class ChatAgent(BaseAgent):
 
         return "chat"
 
-    def execute(self, usuario, mensagem):
+
+    # ==================================================
+    # EXECUTAR
+    # ==================================================
+
+    def execute(
+        self,
+        usuario,
+        mensagem,
+        prompt=""
+    ):
 
         resposta = conversar(
+
             usuario,
+
+            prompt,
+
             mensagem
+
         )
+
 
         return {
 
-            "type": "chat",
+            "type":
+                "chat",
 
-            "text": resposta
+            "text":
+                resposta
 
         }

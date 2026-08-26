@@ -4,29 +4,74 @@ class AgentManager:
 
         self.agents = {}
 
+
+    # ==================================================
+    # REGISTRAR AGENTE
+    # ==================================================
+
     def register(self, agent):
 
         self.agents[agent.name] = agent
+
+
+    # ==================================================
+    # OBTER AGENTE
+    # ==================================================
 
     def get(self, name):
 
         return self.agents.get(name)
 
-    def execute(self, name, usuario, mensagem):
+
+    # ==================================================
+    # EXECUTAR AGENTE
+    # ==================================================
+
+    def execute(
+        self,
+        name,
+        usuario,
+        mensagem,
+        prompt=""
+    ):
 
         agent = self.get(name)
+
+
+        # ==================================================
+        # AGENTE NÃO ENCONTRADO
+        # ==================================================
 
         if agent is None:
 
             return {
-                "type": "error",
-                "text": f"Agente '{name}' não encontrado."
+
+                "type":
+                    "error",
+
+                "text":
+                    f"Agente '{name}' não encontrado."
+
             }
 
+
+        # ==================================================
+        # EXECUTAR
+        # ==================================================
+
         return agent.execute(
+
             usuario,
-            mensagem
+
+            mensagem,
+
+            prompt
+
         )
 
+
+# ======================================================
+# INSTÂNCIA GLOBAL
+# ======================================================
 
 agent_manager = AgentManager()

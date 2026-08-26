@@ -17,11 +17,14 @@ from ai.learning.learning_service import learning
 
 def conversar(
     usuario: str,
+    prompt,
     mensagem: str
 ) -> str:
 
     print("=" * 60)
     print("Conversation Service")
+    print("=" * 60)
+
 
     # ======================================================
     # SEGURANÇA
@@ -44,28 +47,155 @@ def conversar(
     print("=" * 60)
 
 
-    # ------------------------------------------------------
-    # CONTEXTO
-    # ------------------------------------------------------
-
-    contexto = context_manager.build(
-        usuario
-    )
-
-
-    # ------------------------------------------------------
+    # ======================================================
     # PROMPT
-    # ------------------------------------------------------
+    # ======================================================
+    #
+    # Se o Android enviou um prompt completo,
+    # usamos exatamente esse prompt.
+    #
+    # Se não enviou, criamos um prompt localmente
+    # usando o sistema antigo.
+    # ======================================================
 
-    prompt = criar_prompt(
-        contexto,
-        mensagem
+    if not prompt:
+
+        contexto = context_manager.build(
+            usuario
+        )
+
+        prompt = criar_prompt(
+            contexto,
+            mensagem
+        )
+
+
+    # ======================================================
+    # DEBUG DO PROMPT
+    # ======================================================
+
+    print("=" * 60)
+    print("PROMPT ENVIADO AO PROVIDER")
+    print("=" * 60)
+
+    print(
+        "Tipo:",
+        type(prompt)
     )
 
 
-    # ------------------------------------------------------
+    # ======================================================
+    # VERIFICAR ESTRUTURA
+    # ======================================================
+
+    if isinstance(
+        prompt,
+        list
+    ):
+
+        print(
+            "Quantidade de mensagens:",
+            len(prompt)
+        )
+
+
+        for index, item in enumerate(
+            prompt
+        ):
+
+            print(
+                f"Mensagem #{index}:"
+            )
+
+
+            if isinstance(
+                item,
+                dict
+            ):
+
+                print(
+                    "role:",
+                    item.get(
+                        "role"
+                    )
+                )
+
+
+                content = item.get(
+                    "content",
+                    ""
+                )
+
+
+                print(
+                    "tamanho:",
+                    len(
+                        str(
+                            content
+                        )
+                    )
+                )
+
+
+                # ------------------------------------------
+                # IDENTIFICAR CONTEXTO DA PERSONA
+                # ------------------------------------------
+
+                content_text = str(
+                    content
+                ).lower()
+
+
+                if (
+                    "cibely" in
+                    content_text
+                ):
+
+                    print(
+                        "✅ CONTEXTO DE CIBELY ENCONTRADO"
+                    )
+
+
+                if (
+                    "beto" in
+                    content_text
+                ):
+
+                    print(
+                        "✅ CONTEXTO DE BETO ENCONTRADO"
+                    )
+
+
+                if (
+                    "rony" in
+                    content_text
+                ):
+
+                    print(
+                        "✅ CONTEXTO DE RONY ENCONTRADO"
+                    )
+
+
+            else:
+
+                print(
+                    "⚠ Item do prompt não é um objeto."
+                )
+
+
+    else:
+
+        print(
+            "⚠ Prompt recebido não é uma lista."
+        )
+
+
+    print("=" * 60)
+
+
+    # ======================================================
     # PROVIDER
-    # ------------------------------------------------------
+    # ======================================================
 
     resposta = provider.chat(
         prompt
@@ -80,26 +210,35 @@ def conversar(
     print("RESPOSTA RECEBIDA DO PROVIDER")
     print("=" * 60)
 
-    print("repr:")
+
+    print(
+        "repr:"
+    )
+
     print(
         repr(
             resposta
         )
     )
 
+
     print("=" * 60)
 
-    print("texto:")
+    print(
+        "texto:"
+    )
+
     print(
         resposta
     )
 
+
     print("=" * 60)
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # MEMÓRIA
-    # ------------------------------------------------------
+    # ======================================================
 
     salvar_memoria(
         usuario,
@@ -108,9 +247,9 @@ def conversar(
     )
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # APRENDIZADO
-    # ------------------------------------------------------
+    # ======================================================
 
     learning.learn(
         usuario,
@@ -118,9 +257,9 @@ def conversar(
     )
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # RETORNO
-    # ------------------------------------------------------
+    # ======================================================
 
     return resposta
 
@@ -131,7 +270,7 @@ def conversar(
 
 def conversar_stream(
     usuario: str,
-    prompt: str,
+    prompt,
     mensagem: str
 ):
 
@@ -140,9 +279,9 @@ def conversar_stream(
     print("=" * 60)
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # SE O ANDROID NÃO ENVIOU O PROMPT
-    # ------------------------------------------------------
+    # ======================================================
 
     if not prompt:
 
@@ -156,23 +295,55 @@ def conversar_stream(
         )
 
 
-    # ------------------------------------------------------
+    # ======================================================
+    # DEBUG DO PROMPT
+    # ======================================================
+
+    print("=" * 60)
+    print("PROMPT ENVIADO AO STREAM")
+    print("=" * 60)
+
+    print(
+        "Tipo:",
+        type(prompt)
+    )
+
+
+    if isinstance(
+        prompt,
+        list
+    ):
+
+        print(
+            "Quantidade de mensagens:",
+            len(prompt)
+        )
+
+
+    print("=" * 60)
+
+
+    # ======================================================
     # RESPOSTA COMPLETA
-    # ------------------------------------------------------
+    # ======================================================
 
     resposta_completa = ""
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # STREAM
-    # ------------------------------------------------------
+    # ======================================================
 
     for token in provider.chat_stream(
         prompt
     ):
 
-        # Garantimos que o token seja string
+        # -----------------------------------------------
+        # GARANTIR QUE O TOKEN SEJA STRING
+        # -----------------------------------------------
+
         if token is None:
+
             continue
 
 
@@ -195,7 +366,10 @@ def conversar_stream(
     print("RESPOSTA COMPLETA DO STREAM")
     print("=" * 60)
 
-    print("repr:")
+
+    print(
+        "repr:"
+    )
 
     print(
         repr(
@@ -203,20 +377,25 @@ def conversar_stream(
         )
     )
 
+
     print("=" * 60)
 
-    print("texto:")
+
+    print(
+        "texto:"
+    )
 
     print(
         resposta_completa
     )
 
+
     print("=" * 60)
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # MEMÓRIA
-    # ------------------------------------------------------
+    # ======================================================
 
     salvar_memoria(
         usuario,
@@ -225,9 +404,9 @@ def conversar_stream(
     )
 
 
-    # ------------------------------------------------------
+    # ======================================================
     # APRENDIZADO
-    # ------------------------------------------------------
+    # ======================================================
 
     learning.learn(
         usuario,

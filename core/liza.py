@@ -15,9 +15,23 @@ from core import events
 
 class Liza:
 
-    def process(self, usuario, mensagem):
+    def process(
+        self,
+        usuario,
+        mensagem,
+        prompt=""
+    ):
+
+        # ==================================================
+        # ESTADO DO USUÁRIO
+        # ==================================================
 
         state.user = usuario
+
+
+        # ==================================================
+        # EVENTO: MENSAGEM RECEBIDA
+        # ==================================================
 
         event_bus.emit(
 
@@ -25,21 +39,38 @@ class Liza:
 
             {
 
-                "usuario": usuario,
+                "usuario":
+                    usuario,
 
-                "mensagem": mensagem
+                "mensagem":
+                    mensagem,
+
+                "prompt":
+                    prompt
 
             }
 
         )
 
+
+        # ==================================================
+        # PROCESSAMENTO
+        # ==================================================
+
         resposta = services.decision.process(
 
             usuario,
 
-            mensagem
+            mensagem,
+
+            prompt
 
         )
+
+
+        # ==================================================
+        # EVENTO: RESPOSTA
+        # ==================================================
 
         event_bus.emit(
 
@@ -48,6 +79,11 @@ class Liza:
             resposta
 
         )
+
+
+        # ==================================================
+        # RETORNO
+        # ==================================================
 
         return resposta
 

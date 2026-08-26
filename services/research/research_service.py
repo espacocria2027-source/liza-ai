@@ -53,7 +53,8 @@ class ResearchService:
 
     def research(
         self,
-        query: str
+        query: str,
+        response_length: str = "medium"
     ):
 
         query = query.strip()
@@ -63,6 +64,19 @@ class ResearchService:
             raise ValueError(
                 "A consulta não pode estar vazia."
             )
+
+
+        # =============================================
+        # NORMALIZAR TAMANHO DA RESPOSTA
+        # =============================================
+
+        if response_length not in {
+            "short",
+            "medium",
+            "long"
+        }:
+
+            response_length = "medium"
 
 
         # =============================================
@@ -124,7 +138,10 @@ class ResearchService:
                     ),
 
                 "sources":
-                    []
+                    [],
+
+                "responseLength":
+                    response_length
 
             }
 
@@ -169,9 +186,14 @@ class ResearchService:
 
         answer = (
             self.answer_synthesizer.synthesize(
+
                 query,
+
                 results,
-                evidence
+
+                evidence,
+
+                response_length
             )
         )
 
@@ -242,7 +264,10 @@ class ResearchService:
                 evidence.reason,
 
             "sources":
-                source_data
+                source_data,
+
+            "responseLength":
+                response_length
 
         }
 

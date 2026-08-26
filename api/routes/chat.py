@@ -7,6 +7,7 @@ from flask import stream_with_context
 from core.liza import liza
 from ai.conversation_service import conversar_stream
 
+
 chat_bp = Blueprint(
 
     "chat",
@@ -15,8 +16,9 @@ chat_bp = Blueprint(
 
 )
 
+
 # ==========================================================
-# Chat tradicional
+# CHAT TRADICIONAL
 # ==========================================================
 
 @chat_bp.route(
@@ -36,6 +38,11 @@ def chat():
 
     ) or {}
 
+
+    # ======================================================
+    # DADOS RECEBIDOS
+    # ======================================================
+
     usuario = dados.get(
 
         "usuario",
@@ -43,6 +50,7 @@ def chat():
         "usuario"
 
     )
+
 
     mensagem = dados.get(
 
@@ -52,18 +60,82 @@ def chat():
 
     )
 
+
+    prompt = dados.get(
+
+        "prompt",
+
+        ""
+
+    )
+
+
+    # ======================================================
+    # DEBUG
+    # ======================================================
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "LIZA CHAT"
+    )
+
+    print(
+        f"Usuário: {usuario}"
+    )
+
+    print(
+        f"Mensagem: {mensagem}"
+    )
+
+    print(
+        "Prompt recebido: "
+        + (
+            "SIM"
+            if prompt.strip()
+            else "NÃO"
+        )
+    )
+
+    print(
+        f"Tamanho do prompt: {len(prompt)}"
+    )
+
+    print(
+        "========================================"
+    )
+
+
+    # ======================================================
+    # PROCESSAR LIZA
+    # ======================================================
+
     resultado = liza.process(
 
         usuario,
 
-        mensagem
+        mensagem,
+
+        prompt
 
     )
 
-    return jsonify(resultado)
+
+    # ======================================================
+    # RESPOSTA
+    # ======================================================
+
+    return jsonify(
+
+        resultado
+
+    )
+
 
 # ==========================================================
-# Chat Streaming
+# CHAT STREAMING
 # ==========================================================
 
 @chat_bp.route(
@@ -83,6 +155,7 @@ def chat_stream():
 
     ) or {}
 
+
     usuario = dados.get(
 
         "usuario",
@@ -90,6 +163,7 @@ def chat_stream():
         "usuario"
 
     )
+
 
     prompt = dados.get(
 
@@ -99,6 +173,7 @@ def chat_stream():
 
     )
 
+
     mensagem = dados.get(
 
         "message",
@@ -106,6 +181,7 @@ def chat_stream():
         ""
 
     )
+
 
     def generate():
 
@@ -121,7 +197,9 @@ def chat_stream():
 
             yield f"data:{token}\n\n"
 
+
         yield "event:end\ndata:done\n\n"
+
 
     return Response(
 
