@@ -3,17 +3,15 @@ from flask import request
 from flask import jsonify
 from flask import Response
 from flask import stream_with_context
+import json
 
 from core.liza import liza
 from ai.conversation_service import conversar_stream
 
 
 chat_bp = Blueprint(
-
     "chat",
-
     __name__
-
 )
 
 
@@ -22,53 +20,34 @@ chat_bp = Blueprint(
 # ==========================================================
 
 @chat_bp.route(
-
     "/chat",
-
     methods=["POST"]
-
 )
 def chat():
 
     dados = request.get_json(
-
         force=True,
-
         silent=True
-
     ) or {}
-
 
     # ======================================================
     # DADOS RECEBIDOS
     # ======================================================
 
     usuario = dados.get(
-
         "usuario",
-
         "usuario"
-
     )
-
 
     mensagem = dados.get(
-
         "message",
-
         ""
-
     )
-
 
     prompt = dados.get(
-
         "prompt",
-
         ""
-
     )
-
 
     # ======================================================
     # DEBUG
@@ -107,30 +86,22 @@ def chat():
         "========================================"
     )
 
-
     # ======================================================
     # PROCESSAR LIZA
     # ======================================================
 
     resultado = liza.process(
-
         usuario,
-
         mensagem,
-
         prompt
-
     )
-
 
     # ======================================================
     # RESPOSTA
     # ======================================================
 
     return jsonify(
-
         resultado
-
     )
 
 
@@ -139,74 +110,134 @@ def chat():
 # ==========================================================
 
 @chat_bp.route(
-
     "/chat/stream",
-
     methods=["POST"]
-
 )
 def chat_stream():
 
     dados = request.get_json(
-
         force=True,
-
         silent=True
-
     ) or {}
 
+    # ======================================================
+    # DADOS
+    # ======================================================
 
     usuario = dados.get(
-
         "usuario",
-
         "usuario"
-
     )
-
 
     prompt = dados.get(
-
         "prompt",
-
         ""
-
     )
-
 
     mensagem = dados.get(
-
         "message",
-
         ""
-
     )
 
+    # ======================================================
+    # DEBUG
+    # ======================================================
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "LIZA CHAT STREAM"
+    )
+
+    print(
+        f"Usuário: {usuario}"
+    )
+
+    print(
+        f"Mensagem: {mensagem}"
+    )
+
+    print(
+        "========================================"
+    )
+
+    # ======================================================
+    # GERADOR SSE
+    # ======================================================
 
     def generate():
 
-        for token in conversar_stream(
+        try:
 
-            usuario,
+            for token in conversar_stream(
+                usuario,
+                prompt,
+                mensagem
+            ):
 
-            prompt,
+                if token is None:
+                    continue
 
-            mensagem
+                token = str(token)
 
-        ):
+                if not token:
+                    continue
 
-            yield f"data:{token}\n\n"
+                # ------------------------------------------
+                # ENVIA O TOKEN COMO JSON
+                # ------------------------------------------
 
+                payload = json.dumps(
+                    token,
+                    ensure_ascii=False
+                )
 
-        yield "event:end\ndata:done\n\n"
+                yield f"data:{payload}\n\n"
 
+            # ------------------------------------------
+            # FINAL DO STREAM
+            # ------------------------------------------
+
+            yield "event:end\ndata:done\n\n"
+
+            print(
+                "LIZA STREAM FINALIZADO"
+            )
+
+        except Exception as e:
+
+            print(
+                "ERRO NO LIZA STREAM:"
+            )
+
+            print(
+                str(e)
+            )
+
+            # ------------------------------------------
+            # ENVIA ERRO PARA O ANDROID
+            # ------------------------------------------
+
+            erro = json.dumps(
+                str(e),
+                ensure_ascii=False
+            )
+
+            yield (
+                "event:error\n"
+                f"data:{erro}\n\n"
+            )
+
+    # ======================================================
+    # RESPOSTA SSE
+    # ======================================================
 
     return Response(
 
         stream_with_context(
-
             generate()
-
         ),
 
         mimetype="text/event-stream",
@@ -217,7 +248,9 @@ def chat_stream():
 
             "Connection": "keep-alive",
 
-            "X-Accel-Buffering": "no"
+            "X-Accel-Buffering": "no",
+
+            "Access-Control-Allow-Origin": "*"
 
         }
 

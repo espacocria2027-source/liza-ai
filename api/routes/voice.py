@@ -7,21 +7,33 @@ VOICE ROUTE
 from flask import Blueprint
 from flask import jsonify
 from flask import request
-from flask import send_file
+from flask import Response
 
 import asyncio
 import edge_tts
-import os
+import json
+
+
+# ====================================================
+# BLUEPRINT
+# ====================================================
 
 voice_bp = Blueprint(
     "voice",
     __name__
 )
 
+
+# ====================================================
+# CONFIGURAÇÃO
+# ====================================================
+
 VOICE = "pt-BR-FranciscaNeural"
 
-AUDIO_FILE = "liza.mp3"
 
+# ====================================================
+# GERAR STREAM DE ÁUDIO
+# ====================================================
 
 async def gerar_audio(texto):
 
@@ -30,15 +42,86 @@ async def gerar_audio(texto):
         voice=VOICE
     )
 
-    await communicate.save(AUDIO_FILE)
+    async for chunk in communicate.stream():
+
+        # --------------------------------------------
+        # SOMENTE DADOS DE ÁUDIO
+        # --------------------------------------------
+
+        if chunk["type"] == "audio":
+
+            audio = chunk["data"]
+
+            if audio:
+
+                yield audio
 
 
-@voice_bp.route("/tts", methods=["POST"])
+# ====================================================
+# GERADOR SÍNCRONO PARA FLASK
+# ====================================================
+
+def gerar_stream(texto):
+
+    loop = asyncio.new_event_loop()
+
+    asyncio.set_event_loop(loop)
+
+    generator = gerar_audio(texto)
+
+    try:
+
+        while True:
+
+            try:
+
+                chunk = loop.run_until_complete(
+                    generator.__anext__()
+                )
+
+                yield chunk
+
+            except StopAsyncIteration:
+
+                break
+
+    finally:
+
+        try:
+
+            loop.run_until_complete(
+                generator.aclose()
+            )
+
+        except Exception:
+
+            pass
+
+        loop.close()
+
+
+# ====================================================
+# TTS
+# ====================================================
+
+@voice_bp.route(
+    "/tts",
+    methods=["POST"]
+)
 def tts():
 
     dados = request.json or {}
 
-    texto = dados.get("text", "").strip()
+    texto = (
+        dados
+        .get("text", "")
+        .strip()
+    )
+
+
+    # =================================================
+    # TEXTO VAZIO
+    # =================================================
 
     if not texto:
 
@@ -50,17 +133,34 @@ def tts():
 
         }), 400
 
+
     try:
 
-        asyncio.run(
-            gerar_audio(texto)
+        # =============================================
+        # STREAMING
+        # =============================================
+
+        return Response(
+
+            gerar_stream(texto),
+
+            mimetype="audio/mpeg",
+
+            headers={
+
+                "Cache-Control":
+                    "no-cache",
+
+                "Connection":
+                    "keep-alive",
+
+                "X-Accel-Buffering":
+                    "no"
+
+            }
+
         )
 
-        return send_file(
-            AUDIO_FILE,
-            mimetype="audio/mpeg",
-            as_attachment=False
-        )
 
     except Exception as e:
 
