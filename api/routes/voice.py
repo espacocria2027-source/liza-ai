@@ -50,11 +50,34 @@ async def gerar_audio(texto):
         voice=VOICE
     )
 
+    primeiro_evento = True
     primeiro_audio = True
+
     total_bytes = 0
     total_chunks = 0
 
     async for chunk in communicate.stream():
+
+        # --------------------------------------------
+        # PRIMEIRO EVENTO RECEBIDO
+        # --------------------------------------------
+
+        if primeiro_evento:
+
+            primeiro_evento = False
+
+            tempo_primeiro_evento = (
+                time.perf_counter() - inicio
+            )
+
+            print(
+                f"📡 PRIMEIRO EVENTO EDGE-TTS: "
+                f"{tempo_primeiro_evento:.3f}s"
+            )
+
+        # --------------------------------------------
+        # SOMENTE ÁUDIO
+        # --------------------------------------------
 
         if chunk["type"] != "audio":
             continue
@@ -63,9 +86,6 @@ async def gerar_audio(texto):
 
         if not audio:
             continue
-
-        total_chunks += 1
-        total_bytes += len(audio)
 
         # --------------------------------------------
         # PRIMEIRO ÁUDIO
@@ -84,7 +104,22 @@ async def gerar_audio(texto):
                 f"{tempo_primeiro_audio:.3f}s"
             )
 
+        # --------------------------------------------
+        # ESTATÍSTICAS
+        # --------------------------------------------
+
+        total_chunks += 1
+        total_bytes += len(audio)
+
+        # --------------------------------------------
+        # ENTREGA IMEDIATA DO CHUNK
+        # --------------------------------------------
+
         yield audio
+
+    # --------------------------------------------
+    # TEMPO TOTAL
+    # --------------------------------------------
 
     tempo_total = (
         time.perf_counter() - inicio
@@ -127,6 +162,7 @@ def gerar_stream(texto):
                 )
 
                 if chunk:
+
                     yield chunk
 
             except StopAsyncIteration:
