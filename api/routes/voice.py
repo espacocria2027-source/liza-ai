@@ -8,10 +8,11 @@ from flask import Blueprint
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask import stream_with_context
 
 import asyncio
 import edge_tts
-import json
+import time
 
 
 # ====================================================
@@ -37,24 +38,70 @@ VOICE = "pt-BR-FranciscaNeural"
 
 async def gerar_audio(texto):
 
+    inicio = time.perf_counter()
+
+    print("=" * 60)
+    print("EDGE-TTS INICIADO")
+    print("Texto:", texto)
+    print("=" * 60)
+
     communicate = edge_tts.Communicate(
         text=texto,
         voice=VOICE
     )
 
+    primeiro_audio = True
+    total_bytes = 0
+    total_chunks = 0
+
     async for chunk in communicate.stream():
 
+        if chunk["type"] != "audio":
+            continue
+
+        audio = chunk["data"]
+
+        if not audio:
+            continue
+
+        total_chunks += 1
+        total_bytes += len(audio)
+
         # --------------------------------------------
-        # SOMENTE DADOS DE ÁUDIO
+        # PRIMEIRO ÁUDIO
         # --------------------------------------------
 
-        if chunk["type"] == "audio":
+        if primeiro_audio:
 
-            audio = chunk["data"]
+            primeiro_audio = False
 
-            if audio:
+            tempo_primeiro_audio = (
+                time.perf_counter() - inicio
+            )
 
-                yield audio
+            print(
+                f"🎵 PRIMEIRO ÁUDIO: "
+                f"{tempo_primeiro_audio:.3f}s"
+            )
+
+        yield audio
+
+    tempo_total = (
+        time.perf_counter() - inicio
+    )
+
+    print("=" * 60)
+    print("EDGE-TTS FINALIZADO")
+    print(
+        f"Chunks: {total_chunks}"
+    )
+    print(
+        f"Bytes: {total_bytes}"
+    )
+    print(
+        f"Tempo total: {tempo_total:.3f}s"
+    )
+    print("=" * 60)
 
 
 # ====================================================
@@ -79,7 +126,8 @@ def gerar_stream(texto):
                     generator.__anext__()
                 )
 
-                yield chunk
+                if chunk:
+                    yield chunk
 
             except StopAsyncIteration:
 
@@ -97,7 +145,13 @@ def gerar_stream(texto):
 
             pass
 
-        loop.close()
+        try:
+
+            loop.close()
+
+        except Exception:
+
+            pass
 
 
 # ====================================================
@@ -110,7 +164,9 @@ def gerar_stream(texto):
 )
 def tts():
 
-    dados = request.json or {}
+    dados = request.get_json(
+        silent=True
+    ) or {}
 
     texto = (
         dados
@@ -140,16 +196,24 @@ def tts():
         # STREAMING
         # =============================================
 
-        return Response(
+        response = Response(
 
-            gerar_stream(texto),
+            stream_with_context(
+                gerar_stream(texto)
+            ),
 
             mimetype="audio/mpeg",
 
             headers={
 
                 "Cache-Control":
+                    "no-cache, no-store, must-revalidate",
+
+                "Pragma":
                     "no-cache",
+
+                "Expires":
+                    "0",
 
                 "Connection":
                     "keep-alive",
@@ -160,6 +224,8 @@ def tts():
             }
 
         )
+
+        return response
 
 
     except Exception as e:
