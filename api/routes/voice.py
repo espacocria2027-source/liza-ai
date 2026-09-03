@@ -1,9 +1,3 @@
-"""
-====================================================
-VOICE ROUTE
-====================================================
-"""
-
 from flask import Blueprint
 from flask import jsonify
 from flask import request
@@ -15,35 +9,28 @@ import edge_tts
 import time
 
 
-# ====================================================
-# BLUEPRINT
-# ====================================================
-
-voice_bp = Blueprint(
-    "voice",
-    __name__
-)
-
-
-# ====================================================
-# CONFIGURAÇÃO
-# ====================================================
+voice_bp = Blueprint("voice", __name__)
 
 VOICE = "pt-BR-FranciscaNeural"
 
 
-# ====================================================
-# GERAR STREAM DE ÁUDIO
-# ====================================================
+# =========================================================
+# EDGE-TTS
+# =========================================================
 
-async def gerar_audio(texto):
+async def gerar_audio(texto, inicio_request):
+    inicio_edge = time.perf_counter()
 
-    inicio = time.perf_counter()
-
-    print("=" * 60)
-    print("EDGE-TTS INICIADO")
+    print()
+    print("=" * 70)
+    print("🎙️ EDGE-TTS INICIADO")
     print("Texto:", texto)
-    print("=" * 60)
+    print("=" * 70)
+
+    print(
+        f"⏱️ Desde chegada da requisição: "
+        f"{inicio_edge - inicio_request:.3f}s"
+    )
 
     communicate = edge_tts.Communicate(
         text=texto,
@@ -56,100 +43,140 @@ async def gerar_audio(texto):
     total_bytes = 0
     total_chunks = 0
 
-    async for chunk in communicate.stream():
+    try:
 
-        # --------------------------------------------
-        # PRIMEIRO EVENTO RECEBIDO
-        # --------------------------------------------
+        async for chunk in communicate.stream():
 
-        if primeiro_evento:
+            # =================================================
+            # PRIMEIRO EVENTO EDGE-TTS
+            # =================================================
 
-            primeiro_evento = False
+            if primeiro_evento:
 
-            tempo_primeiro_evento = (
-                time.perf_counter() - inicio
-            )
+                primeiro_evento = False
 
-            print(
-                f"📡 PRIMEIRO EVENTO EDGE-TTS: "
-                f"{tempo_primeiro_evento:.3f}s"
-            )
+                tempo_primeiro_evento = (
+                    time.perf_counter() - inicio_edge
+                )
 
-        # --------------------------------------------
-        # SOMENTE ÁUDIO
-        # --------------------------------------------
+                tempo_desde_request = (
+                    time.perf_counter() - inicio_request
+                )
 
-        if chunk["type"] != "audio":
-            continue
+                print(
+                    f"📡 PRIMEIRO EVENTO EDGE-TTS: "
+                    f"{tempo_primeiro_evento:.3f}s"
+                )
 
-        audio = chunk["data"]
+                print(
+                    f"📡 DESDE REQUEST: "
+                    f"{tempo_desde_request:.3f}s"
+                )
 
-        if not audio:
-            continue
+            # =================================================
+            # IGNORA EVENTOS QUE NÃO SÃO ÁUDIO
+            # =================================================
 
-        # --------------------------------------------
-        # PRIMEIRO ÁUDIO
-        # --------------------------------------------
+            if chunk["type"] != "audio":
+                continue
 
-        if primeiro_audio:
+            audio = chunk["data"]
 
-            primeiro_audio = False
+            if not audio:
+                continue
 
-            tempo_primeiro_audio = (
-                time.perf_counter() - inicio
-            )
+            # =================================================
+            # PRIMEIRO ÁUDIO
+            # =================================================
 
-            print(
-                f"🎵 PRIMEIRO ÁUDIO: "
-                f"{tempo_primeiro_audio:.3f}s"
-            )
+            if primeiro_audio:
 
-        # --------------------------------------------
-        # ESTATÍSTICAS
-        # --------------------------------------------
+                primeiro_audio = False
 
-        total_chunks += 1
-        total_bytes += len(audio)
+                agora = time.perf_counter()
 
-        # --------------------------------------------
-        # ENTREGA IMEDIATA DO CHUNK
-        # --------------------------------------------
+                tempo_primeiro_audio = (
+                    agora - inicio_edge
+                )
 
-        yield audio
+                tempo_desde_request = (
+                    agora - inicio_request
+                )
 
-    # --------------------------------------------
-    # TEMPO TOTAL
-    # --------------------------------------------
+                print()
+                print("🎵 PRIMEIRO ÁUDIO EDGE-TTS")
+                print(
+                    f"🎵 Desde Edge-TTS: "
+                    f"{tempo_primeiro_audio:.3f}s"
+                )
+                print(
+                    f"🎵 Desde chegada da request: "
+                    f"{tempo_desde_request:.3f}s"
+                )
+                print(
+                    f"🎵 Primeiro chunk: "
+                    f"{len(audio)} bytes"
+                )
+                print()
 
-    tempo_total = (
-        time.perf_counter() - inicio
-    )
+            # =================================================
+            # CONTADORES
+            # =================================================
 
-    print("=" * 60)
-    print("EDGE-TTS FINALIZADO")
-    print(
-        f"Chunks: {total_chunks}"
-    )
-    print(
-        f"Bytes: {total_bytes}"
-    )
-    print(
-        f"Tempo total: {tempo_total:.3f}s"
-    )
-    print("=" * 60)
+            total_chunks += 1
+            total_bytes += len(audio)
+
+            # =================================================
+            # ENVIA IMEDIATAMENTE PARA O FLASK
+            # =================================================
+
+            yield audio
+
+    finally:
+
+        tempo_total_edge = (
+            time.perf_counter() - inicio_edge
+        )
+
+        tempo_total_request = (
+            time.perf_counter() - inicio_request
+        )
+
+        print()
+        print("=" * 70)
+        print("🏁 EDGE-TTS FINALIZADO")
+        print(
+            f"📦 Chunks: {total_chunks}"
+        )
+        print(
+            f"📦 Bytes: {total_bytes}"
+        )
+        print(
+            f"⏱️ Tempo Edge-TTS: "
+            f"{tempo_total_edge:.3f}s"
+        )
+        print(
+            f"⏱️ Tempo desde request: "
+            f"{tempo_total_request:.3f}s"
+        )
+        print("=" * 70)
+        print()
 
 
-# ====================================================
-# GERADOR SÍNCRONO PARA FLASK
-# ====================================================
+# =========================================================
+# STREAM BRIDGE
+# =========================================================
 
-def gerar_stream(texto):
+def gerar_stream(texto, inicio_request):
 
     loop = asyncio.new_event_loop()
 
     asyncio.set_event_loop(loop)
 
-    generator = gerar_audio(texto)
+    generator = gerar_audio(
+        texto,
+        inicio_request
+    )
 
     try:
 
@@ -162,7 +189,6 @@ def gerar_stream(texto):
                 )
 
                 if chunk:
-
                     yield chunk
 
             except StopAsyncIteration:
@@ -178,7 +204,6 @@ def gerar_stream(texto):
             )
 
         except Exception:
-
             pass
 
         try:
@@ -186,58 +211,67 @@ def gerar_stream(texto):
             loop.close()
 
         except Exception:
-
             pass
 
 
-# ====================================================
-# TTS
-# ====================================================
+# =========================================================
+# /TTS
+# =========================================================
 
-@voice_bp.route(
-    "/tts",
-    methods=["POST"]
-)
+@voice_bp.route("/tts", methods=["POST"])
 def tts():
 
-    dados = request.get_json(
-        silent=True
-    ) or {}
+    # =====================================================
+    # CRONÔMETRO DA REQUEST
+    # =====================================================
 
-    texto = (
-        dados
-        .get("text", "")
-        .strip()
+    inicio_request = time.perf_counter()
+
+    print()
+    print("╔" + "═" * 68 + "╗")
+    print("║ 🚀 NOVA REQUEST /tts")
+    print("╚" + "═" * 68 + "╝")
+
+    # =====================================================
+    # RECEBE JSON
+    # =====================================================
+
+    dados = request.get_json(silent=True) or {}
+
+    texto = dados.get(
+        "text",
+        ""
+    ).strip()
+
+    print(
+        f"📥 JSON recebido em "
+        f"{time.perf_counter() - inicio_request:.3f}s"
     )
-
-
-    # =================================================
-    # TEXTO VAZIO
-    # =================================================
 
     if not texto:
 
+        print("❌ Texto vazio.")
+
         return jsonify({
-
             "success": False,
-
             "error": "Texto vazio."
-
         }), 400
 
+    print("📝 Texto:", texto)
+
+    # =====================================================
+    # CRIA STREAM
+    # =====================================================
 
     try:
 
-        # =============================================
-        # STREAMING
-        # =============================================
+        stream = gerar_stream(
+            texto,
+            inicio_request
+        )
 
         response = Response(
-
-            stream_with_context(
-                gerar_stream(texto)
-            ),
-
+            stream_with_context(stream),
             mimetype="audio/mpeg",
 
             headers={
@@ -256,20 +290,28 @@ def tts():
 
                 "X-Accel-Buffering":
                     "no"
-
             }
+        )
 
+        print(
+            f"📤 Response criada em "
+            f"{time.perf_counter() - inicio_request:.3f}s"
+        )
+
+        print(
+            "📤 Iniciando streaming..."
         )
 
         return response
 
-
     except Exception as e:
 
+        print(
+            "❌ ERRO /tts:",
+            repr(e)
+        )
+
         return jsonify({
-
             "success": False,
-
             "error": str(e)
-
         }), 500
